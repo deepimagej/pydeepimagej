@@ -42,7 +42,7 @@ dij_config.References = 'C. García-López-de-Haro et al., bioRxiv 2019'
 dij_config.Date       = 'September-2020'
 ````
 **Prepare an ImageJ pre/post-processing macro.** 
-You may need to preprocess the input image before the inference. Some ImageJ macro routines can be downloaded from [here](https://github.com/deepimagej/imagej-macros/) and included in the model specifications:
+You may need to preprocess the input image before the inference. Some ImageJ macro routines can be downloaded from [here](https://github.com/deepimagej/imagej-macros/) and included in the model specifications. Note that ImageJ macros are text files so it is easy to modify them inside a Python script ([see an example](https://github.com/deepimagej/pydeepimagej/blob/master/README.md#additional-commands)):
 ````
 path_preprocessing = "PercentileNormalization.ijm"`
 # Download the macro file
@@ -70,12 +70,12 @@ Let `test_img` be an example image to test the model inference and `test_predict
 dij_config.add_test_info(test_img, test_prediction, PixelSize)
 ````
 
-**EXPORT THE MODEL.**
+**EXPORT THE MODEL**
 ````
 deepimagej_model_path = './my_trained_model_deepimagej'
 dij_config.export_model(model, deepimagej_model_path)
 `````
-#### Additional commands
+### Additional commands
 **Change one line in an ImageJ macro**
 ````
 # Download the macro file
