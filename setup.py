@@ -12,13 +12,13 @@ setup(
   author = 'C. Garcia-Lopez-de-Haro, E. Gomez-de-Mariscal, L. Donati, M. Unser, A. Munoz-Barrutia, D. Sage.',
   author_email = 'esgomezm@pa.uc3m.com, daniel.sage@epfl.ch, mamunozb@ing.uc3m.es',
   url = 'https://deepimagej.github.io/deepimagej/',
-  download_url = 'https://github.com/deepimagej/pydeepimagej',
+  download_url = 'https://github.com/deepimagej/pydeepimagej/archive/v1.0.tar.gz',
   keywords = ['Fiji', 'ImageJ', 'DeepImageJ', 'Deep Learning', 'Image processing'],  
   python_requires='>=3.0',
   install_requires=[
 	'numpy',
 	'scikit-image',
-    'tensorflow<=2.2'
+    	'tensorflow<=2.2'
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',
