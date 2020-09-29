@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Model>
+    <ModelInformation>
+        <Name></Name>
+        <Author></Author>
+        <URL></URL>
+        <Credit></Credit>
+        <Version></Version>
+        <Date></Date>
+        <Reference></Reference>
+    </ModelInformation>
+    <ModelTest>
+        <InputSize></InputSize>
+        <OutputSize></OutputSize>
+        <MemoryPeak></MemoryPeak>
+        <Runtime></Runtime>
+	<PixelSize></PixelSize>
+    </ModelTest>
+    <ModelCharacteristics>
+        <ModelTag></ModelTag>
+        <SignatureDefinition></SignatureDefinition>
+        <InputTensorDimensions></InputTensorDimensions>
+        <NumberOfInputs></NumberOfInputs>
+        <InputNames0></InputNames0>
+        <InputOrganization0></InputOrganization0>
+        <NumberOfOutputs></NumberOfOutputs>
+        <OutputNames0></OutputNames0>
+        <OutputOrganization0></OutputOrganization0>
+        <Channels></Channels>
+        <FixedPatch></FixedPatch>
+        <MinimumSize></MinimumSize>
+        <PatchSize></PatchSize>
+        <FixedPadding></FixedPadding>
+        <Padding></Padding>
+        <PreprocessingFile></PreprocessingFile>
+        <PostprocessingFile></PostprocessingFile>
+        <slices></slices>
+    </ModelCharacteristics>
+</Model>

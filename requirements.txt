@@ -1,0 +1,7 @@
+numpy
+xml
+time
+urllib
+shutil
+skimage
+tensorflow<=2.2
