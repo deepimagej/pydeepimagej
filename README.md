@@ -29,7 +29,7 @@ $ python setup.py install
 
 Let `model` be a Keras or TensorFlow trained model. Initialize the configuration class with the trained model `model`
 ````
-dij_config = DeepImageJConfig(model)`
+dij_config = DeepImageJConfig(model)
 ````
 Update model information
 ````
