@@ -11,7 +11,8 @@ Python code to export trained models and read them in Fiji & ImageJ using DeepIm
 
 ### Installation
 
-PyDeepImageJ requires Python 3 to run.
+PyDeepImageJ requires Python 3 to run. 
+TensorFlow: It runs using the local installation of TensorFlow, i.e. the one corresponding to the trained model. However, DeepImageJ is only compatible with TensorFlow versions <= 2.2.1
 
 To install PyDeepImageJ either clone this repository or use PyPi via `pip`:
 
