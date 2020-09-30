@@ -1,1 +1,1 @@
-from pydeepimagej.xml.create_config import DeepImageJConfig
+from .xml.create_config import *
