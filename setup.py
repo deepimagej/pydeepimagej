@@ -19,7 +19,8 @@ setup(
   python_requires='>=3.0',
   install_requires=[
 	'numpy',
-	'scikit-image'
+	'scikit-image',
+	'yaml==5.1'
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',

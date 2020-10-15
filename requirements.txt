@@ -5,3 +5,4 @@ urllib
 shutil
 skimage
 tensorflow<=2.2
+yaml==5.1
