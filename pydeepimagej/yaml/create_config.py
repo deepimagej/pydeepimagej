@@ -265,7 +265,7 @@ def write_config(Config, TestInfo, path2save):
     information about the model and the example image.
     """
     urllib.request.urlretrieve(
-        "https://raw.githubusercontent.com/deepimagej/python4deepimagej/master/yaml/bioimage.config_template.yaml",
+        "https://raw.githubusercontent.com/deepimagej/pydeepimagej/bioimage-yaml/pydeepimagej/yaml/bioimage.config_template.yaml",
         "bioimage.config_template.yaml")
     try:
         with open('bioimage.config_template.yaml') as file:
