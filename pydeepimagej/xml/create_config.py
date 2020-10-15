@@ -40,6 +40,7 @@ import numpy as np
 import urllib
 import shutil
 from skimage import io
+from DeepImageJConfig import DeepImageJConfig
 
 """
 Download the template from this link: 
@@ -53,7 +54,7 @@ tf.__version__
 ----------------------------------------------------
 Example:
 ----------------------------------------------------
-dij_config = DeepImageJConfig(model)
+dij_config = xmlConfig(model)
 # Update model information
 dij_config.Authors = authors
 dij_config.Credits = credits
@@ -100,157 +101,104 @@ ijmacro = open(path_postprocessing,"w")
 ijmacro. writelines(list_of_lines)
 ijmacro. close()
 """
+class xmlConfig:
+    # Import all the information needed for DeepImageJ
+    DeepImageJConfig.__init__(self, tf_model)
 
-class DeepImageJConfig:    
-    def __init__(self, tf_model):
-        # ModelInformation
-        self.Name       = 'null'
-        self.Authors    = 'null'
-        self.URL        = 'null'
-        self.Credits    = 'null'
-        self.Version    = 'null'
-        self.References = 'null'
-        self.Date       = time.ctime()
-        # Same value as 2**pooling_steps 
-        # (related to encoder-decoder archtiectures) when the input size is not
-        # fixed
-        self.MinimumSize = '8'
-        self.get_dimensions(tf_model)
-        # Receptive field of the network to process input 
-        self.Padding = np.str(self._pixel_half_receptive_field(tf_model))
-        self.Preprocessing = list()
-        self.Postprocessing = list()
-        self.Preprocessing_files = list()
-        self.Postprocessing_files = list()
-        
+    self.get_dimensions(tf_model)
+    # Receptive field of the network to process input
+    self.Padding = np.str(self._pixel_half_receptive_field(tf_model))
+
     def get_dimensions(self, tf_model):
         """
         Calculates the array organization and shapes of inputs and outputs.
         """
-        input_dim   = tf_model.input_shape
-        output_dim  = tf_model.output_shape
-        # Deal with the order of the dimensions and whether the size is fixed 
+        input_dim = tf_model.input_shape
+        output_dim = tf_model.output_shape
+        # Deal with the order of the dimensions and whether the size is fixed
         # or not
         if input_dim[2] is None:
-            self.FixedPatch  = 'false'
-            self.PatchSize   = self.MinimumSize
+            self.FixedPatch = 'false'
+            self.PatchSize = self.MinimumSize
             if input_dim[-1] is None:
-              self.InputOrganization0 = 'NCHW'
-              self.Channels           = np.str(input_dim[1])
+                self.InputOrganization0 = 'NCHW'
+                self.Channels = np.str(input_dim[1])
             else:
-              self.InputOrganization0 = 'NHWC'
-              self.Channels           = np.str(input_dim[-1])
-            
+                self.InputOrganization0 = 'NHWC'
+                self.Channels = np.str(input_dim[-1])
+
             if output_dim[-1] is None:
-              self.OutputOrganization0 = 'NCHW'    
+                self.OutputOrganization0 = 'NCHW'
             else:
-              self.OutputOrganization0 = 'NHWC'
+                self.OutputOrganization0 = 'NHWC'
         else:
             self.FixedPatch = 'true'
-            self.PatchSize  = np.str(input_dim[2])
+            self.PatchSize = np.str(input_dim[2])
 
             if input_dim[-1] < input_dim[-2] and input_dim[-1] < input_dim[-3]:
-              self.InputOrganization0 = 'NHWC'
-              self.Channels           = np.str(input_dim[-1])
+                self.InputOrganization0 = 'NHWC'
+                self.Channels = np.str(input_dim[-1])
             else:
-              self.InputOrganization0 = 'NCHW'
-              self.Channels           = np.str(input_dim[1])
+                self.InputOrganization0 = 'NCHW'
+                self.Channels = np.str(input_dim[1])
 
             if output_dim[-1] < output_dim[-2] and output_dim[-1] < output_dim[-3]:
-              self.OutputOrganization0 = 'NHWC'
+                self.OutputOrganization0 = 'NHWC'
             else:
-              self.OutputOrganization0 = 'NCHW'
-        
-        # Adapt the format from brackets to parenthesis      
+                self.OutputOrganization0 = 'NCHW'
+
+        # Adapt the format from brackets to parenthesis
         input_dim = np.str(input_dim)
         input_dim = input_dim.replace('(', ',')
         input_dim = input_dim.replace(')', ',')
         input_dim = input_dim.replace('None', '-1')
         input_dim = input_dim.replace(' ', "")
-        self.InputTensorDimensions = input_dim        
-        
+        self.InputTensorDimensions = input_dim
+
     def _pixel_half_receptive_field(self, tf_model):
         """
-        The halo is equivalent to the receptive field of one pixel. This value 
+        The halo is equivalent to the receptive field of one pixel. This value
         is used for image reconstruction when a entire image is processed.
         """
         input_shape = tf_model.input_shape
-        
-        if self.FixedPatch == 'false':
-          min_size = 50*np.int(self.MinimumSize)
 
-          if self.InputOrganization0 == 'NHWC':
-            null_im = np.zeros((1, min_size, min_size, input_shape[-1])
-                                , dtype=np.float32)
-          else:
-            null_im = np.zeros((1, input_shape[1], min_size, min_size)
-                                , dtype=np.float32)
+        if self.FixedPatch == 'false':
+            min_size = 50 * np.int(self.MinimumSize)
+
+            if self.InputOrganization0 == 'NHWC':
+                null_im = np.zeros((1, min_size, min_size, input_shape[-1])
+                                   , dtype=np.float32)
+            else:
+                null_im = np.zeros((1, input_shape[1], min_size, min_size)
+                                   , dtype=np.float32)
         else:
-          null_im   = np.zeros((input_shape[1:])
-                                , dtype=np.float32)
-          null_im   = np.expand_dims(null_im, axis=0)
-          min_size  = np.int(self.PatchSize)
+            null_im = np.zeros((input_shape[1:])
+                               , dtype=np.float32)
+            null_im = np.expand_dims(null_im, axis=0)
+            min_size = np.int(self.PatchSize)
 
         point_im = np.zeros_like(null_im)
-        min_size = np.int(min_size/2)
+        min_size = np.int(min_size / 2)
 
         if self.InputOrganization0 == 'NHWC':
-            point_im[0,min_size,min_size]   = 1
+            point_im[0, min_size, min_size] = 1
         else:
-            point_im[0,:,min_size,min_size] = 1
+            point_im[0, :, min_size, min_size] = 1
 
         result_unit = tf_model.predict(np.concatenate((null_im, point_im)))
 
-        D = np.abs(result_unit[0]-result_unit[1])>0
+        D = np.abs(result_unit[0] - result_unit[1]) > 0
 
         if self.InputOrganization0 == 'NHWC':
-            D = D[:,:,0]
+            D = D[:, :, 0]
         else:
-            D = D[0,:,:]
+            D = D[0, :, :]
 
-        ind   = np.where(D[:min_size,:min_size]==1)
-        halo  = np.min(ind[1])
-        halo  = min_size-halo+1
+        ind = np.where(D[:min_size, :min_size] == 1)
+        halo = np.min(ind[1])
+        halo = min_size - halo + 1
 
         return halo
-    
-    class TestImage:
-        def __add__(self, input_im, output_im, pixel_size):
-            """
-            pixel size must be given in microns
-            """
-            self.Input_shape = '{0}x{1}'.format(input_im.shape[0], input_im.shape[1])
-            self.InputImage = input_im
-            self.Output_shape = '{0}x{1}'.format(output_im.shape[0], output_im.shape[1])
-            self.OutputImage = output_im
-            self.MemoryPeak = 'null'
-            self.Runtime = 'null'
-            self.PixelSize = '{0}µmx{1}µm'.format(pixel_size, pixel_size)
-
-    def add_test_info(self, input_im, output_im, pixel_size):
-        self.test_info = self.TestImage()
-        self.test_info.__add__(input_im, output_im, pixel_size)
-
-    def add_preprocessing(self, file, name):
-        file_extension = file.split('.')[-1]
-        name = name + '.' + file_extension
-        if name.startswith('preprocessing'):
-            self.Preprocessing.insert(len(self.Preprocessing),name)
-        else:
-            name = "preprocessing_"+name
-            self.Preprocessing.insert(len(self.Preprocessing),name)
-        self.Preprocessing_files.insert(len(self.Preprocessing_files), file)
-
-    def add_postprocessing(self, file, name):
-        file_extension = file.split('.')[-1]
-        name = name + '.' + file_extension
-        if name.startswith('postprocessing'):
-            self.Postprocessing.insert(len(self.Postprocessing), name)
-        else:
-            name = "postprocessing_" + name
-            self.Postprocessing.insert(len(self.Postprocessing), name)
-        self.Postprocessing_files.insert(len(self.Postprocessing_files), file)
-
 
     def export_model(self, tf_model,deepimagej_model_path, **kwargs):
         """
