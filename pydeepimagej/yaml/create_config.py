@@ -109,11 +109,18 @@ class BioimageConfig:
 
         # Adapt the format from brackets to parenthesis
         input_dim = np.str(input_dim)
-        input_dim = input_dim.replace('(', ',')
-        input_dim = input_dim.replace(')', ',')
-        input_dim = input_dim.replace('None', '-1')
+        input_dim = input_dim.replace('(', '[')
+        input_dim = input_dim.replace(')', ']')
+        input_dim = input_dim.replace('None', '1')
         input_dim = input_dim.replace(' ', "")
+
+        output_dim = np.str(output_dim)
+        output_dim = output_dim.replace('(', '[')
+        output_dim = output_dim.replace(')', ']')
+        output_dim = output_dim.replace('None', '1')
+        output_dim = output_dim.replace(' ', "")
         self.InputTensorDimensions = input_dim
+        self.OutputTensorDimensions = output_dim
 
     def _pixel_half_receptive_field(self, tf_model):
         """
@@ -132,9 +139,8 @@ class BioimageConfig:
                 dim = np.concatenate(([1, input_shape[-1]], min_size * dim))
                 null_im = np.zeros(dim, dtype=np.float32)
         else:
-            null_im = np.zeros((input_shape)
-                               , dtype=np.float32)
-            # null_im = np.expand_dims(null_im, axis=0)
+            null_im = np.zeros((input_shape[1:]), dtype=np.float32)
+            null_im = np.expand_dims(null_im, axis=0)
             min_size = np.int(self.PatchSize)
 
         point_im = np.zeros_like(null_im)
@@ -172,33 +178,39 @@ class BioimageConfig:
         tf_model:              tensorflow/keras model
         deepimagej_model_path: directory where DeepImageJ model is stored.
         """
-        # Save the mode as protobuffer
-        self.save_tensorflow_pb(tf_model, deepimagej_model_path)
+        # # Save the mode as protobuffer
+        # self.save_tensorflow_pb(tf_model, deepimagej_model_path)
 
-        # extract the information about the testing image
-        test_info = self.test_info
-        io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tiff'), self.test_info.InputImage)
-        io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tiff'), self.test_info.OutputImage)
-        print("Example images stored.")
+        # # extract the information about the testing image
+        # test_info = self.test_info
+        # io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tiff'), self.test_info.InputImage)
+        # io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tiff'), self.test_info.OutputImage)
+        
+        # # store numpy arrays for future bioimage CI
+        # np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'), self.test_info.InputImage)
+        # np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'), self.test_info.OutputImage)
+        
+        # print("Example images stored.")
 
         # write the DeepImageJ configuration as an xml file
-        write_config(self, test_info, deepimagej_model_path)
+        # write_config(self, test_info, deepimagej_model_path)
+        write_config(self, deepimagej_model_path)
 
-        # Add preprocessing and postprocessing macros. 
-        # More than one is available, but the first one is set by default.
-        for i in range(len(self.Preprocessing)):
-            shutil.copy2(self.Preprocessing_files[i], os.path.join(deepimagej_model_path, self.Preprocessing[i]))
-            print("ImageJ macro {} included in the bundled model.".format(self.Preprocessing[i]))
+        # # Add preprocessing and postprocessing macros. 
+        # # More than one is available, but the first one is set by default.
+        # for i in range(len(self.Preprocessing)):
+        #     shutil.copy2(self.Preprocessing_files[i], os.path.join(deepimagej_model_path, self.Preprocessing[i]))
+        #     print("ImageJ macro {} included in the bundled model.".format(self.Preprocessing[i]))
 
-        for i in range(len(self.Postprocessing)):
-            shutil.copy2(self.Postprocessing_files[i], os.path.join(deepimagej_model_path, self.Postprocessing[i]))
-            print("ImageJ macro {} included in the bundled model.".format(self.Postprocessing[i]))
+        # for i in range(len(self.Postprocessing)):
+        #     shutil.copy2(self.Postprocessing_files[i], os.path.join(deepimagej_model_path, self.Postprocessing[i]))
+        #     print("ImageJ macro {} included in the bundled model.".format(self.Postprocessing[i]))
 
-        # Zip the bundled model to download
-        shutil.make_archive(deepimagej_model_path, 'zip', deepimagej_model_path)
-        print(
-            "DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.".format(
-                deepimagej_model_path))
+        # # Zip the bundled model to download
+        # shutil.make_archive(deepimagej_model_path, 'zip', deepimagej_model_path)
+        # print(
+        #     "DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.".format(
+        #         deepimagej_model_path))
 
     def save_tensorflow_pb(self, tf_model, deepimagej_model_path):
         # Check whether the folder to save the DeepImageJ bundled model exists.
@@ -254,7 +266,7 @@ class BioimageConfig:
                 _model.set_weights(_weights)
                 _save_model()
 
-def write_config(Config, TestInfo, path2save):
+def write_config(Config, path2save):
     """
     - Config:       Class with all the information about the model's architecture and pre/post-processing
     - TestInfo:   Metadata of the image provided as an example
@@ -293,15 +305,38 @@ def write_config(Config, TestInfo, path2save):
 
     DIJ_CONFIG = {
         'deepimagej': {
+            'pyramidal_model': Config.pyramidal_model,
+            'allow_tiling': Config.allow_tiling,
             'model_keys': {'model_tag': 'tf.saved_model.tag_constants.SERVING',
                            'signature_definition': 'tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY'},
             'test_information': {
                 'device': 'CPU',
-                'input_size': '[{}]'.format(TestInfo.Input_shape),
-                'output_size': '[{}]'.format(TestInfo.Output_shape),
-                'pixel_size': '[{}]'.format(TestInfo.PixelSize),
+                'inputs': {
+                    'name': 'raw',
+                    'size': 9,
+                    'pixel_size': {
+                        'x': 1,
+                        'y': 2, 
+                        'z': 3
+                    }
+                },
+                'outputs': {
+                    'name': A,
+                    'type': A,
+                    'size': A
+                },
                 'memory_peak': 'null',
                 'runtime': 'null'
+            },
+            'prediction': {
+                'preprocess':{
+                    'spec': 'ij.IJ::runMacroFile',
+                    'kwargs': 8 #'{}'.format(Config.Preprocessing[0])
+                },
+                'postprocess':{
+                    'spec': 'ij.IJ::runMacroFile',
+                    'kwargs': 8# '{}'.format(Config.Postprocessing[0])
+                }
             }
         }
     }
@@ -383,3 +418,45 @@ def output_definition(Config):
                 'name': 'null',
                 'shape': shape_dict}]
     return OUTPUTS
+def bioimage_spec_config_deepimagej(Config):
+  preprocess = {}
+  for step in Config.Preprocessing:
+      preprocess.add({'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)})
+  postprocess = {}
+  for step in Config.Postprocessing:
+      postprocess.add({'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)})
+      
+
+
+
+  DIJ_CONFIG = {
+        'deepimagej': {
+            'pyramidal_model': Config.pyramidal_model,
+            'allow_tiling': Config.allow_tiling,
+            'model_keys': {'model_tag': 'tf.saved_model.tag_constants.SERVING',
+                           'signature_definition': 'tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY'},
+            'test_information': {
+                'device': 'CPU',
+                'inputs': {
+                    'name': 'raw',
+                    'size': 8,
+                    'pixel_size': {
+                        'x': 8,
+                        'y': 8,
+                        'z': 8
+                    }
+                },
+                'outputs': {
+                    'name': 8,
+                    'type': 8,
+                    'size': 8
+                },
+                'memory_peak': 'null',
+                'runtime': 'null'
+            },
+            'prediction': {
+                'preprocess': preprocess,
+                'postprocess': postprocess
+            }
+        }
+    }
