@@ -383,4 +383,3 @@ def output_definition(Config):
                 'name': 'null',
                 'shape': shape_dict}]
     return OUTPUTS
->>>>>>> Stashed changes
