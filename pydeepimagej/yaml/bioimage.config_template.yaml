@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 name:
 description:
 date:
@@ -65,3 +66,91 @@ prediction:
     spec: deepimagej.runMacro::preprocessing
     kwargs: {postprocessing.txt}
   dependencies: deepimagej
+=======
+format_version: 0.3.0
+name:
+description:
+date:
+# we allow for multiple citations. Each citation contains TEXT, DOI and URL. One of DOI or URL needs to be given.
+cite:
+    - text: Gómez de Mariscal et al. bioRxiv 2019
+      doi: https://doi.org/10.1101/799270
+authors:
+documentation:
+
+license:
+language: Java
+framework:
+git_repo:
+covers:
+tags:
+  - deepimagej
+
+source:
+
+weights:
+  tensorflow_saved_model_bundle:
+    source:
+    sha256:
+    description:
+    test_input:
+    test_output:
+    
+  tensorflow_js:
+    source: 
+    sha256: 
+    test_input:
+    test_output:
+
+inputs:
+  - name: raw
+    axes:
+    data_type:
+    data_range:
+    shape:
+    preprocessing:
+
+outputs:
+  - name: 
+    axes: 
+    data_type: 
+    data_range:
+    halo:
+    shape:
+      reference_input:
+      scale:
+      offset:
+    postprocessing:
+
+config:
+# custom config for DeepImageJ, see https://github.com/bioimage-io/configuration/issues/23
+  deepimagej:
+    pyramidal_model: false
+    allow_tiling: true
+    model_keys:
+      # The tag "SERVING" is used in almost every tf model
+      model_tag: tf.saved_model.tag_constants.SERVING
+      # Signature definition to call the model. Again, "SERVING" is the most general
+      signature_definition: tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
+    test_information:
+      inputs:
+        - name:
+          size:
+          pixel_size:
+            x:
+            y:
+            z:
+      outputs:
+        - name:
+          type:
+          size:
+      memory_peak:
+      runtime:
+    prediction:
+      preprocess:
+      -   spec: ij.IJ::runMacroFile
+          kwargs:
+      postprocess:
+      -   spec: ij.IJ::runMacroFile
+          kwargs:
+>>>>>>> Stashed changes
