@@ -14,23 +14,25 @@ class BioimageConfig:
         # Import all the information needed for DeepImageJ
         DeepImageJConfig.__init__(self, tf_model)
         # New fields for the Bioimage.IO configuration file
-        self.Description = 'null'
-        self.DOI = 'null'
-        self.Documentation = 'null'
-        self.Format_version = 'null'
+        self.Description = None
+        self.DOI = None
+        self.Documentation = None
+        self.Format_version = '0.3.0'  # bioimage.IO
         self.License = 'BSD-3'
-        self.Source = 'null'
+        self.Source = None
         self.Tags = ['deepimagej']
-        self.WeightsVersion = 'v1'
+        self.CoverImage = None
+        self.WeightsTF = 'tensorflow_saved_model_bundle.zip'
+        # self.WeightsTorchScript = 'pytorch_script.pt'
         self.get_dimensions(tf_model)
         # Receptive field of the network to process input
         if self.OutputOrganization0 is not 'list':
-            self.Padding = np.str(self._pixel_half_receptive_field(tf_model))
+            self.Padding = self._pixel_half_receptive_field(tf_model)
 
         self.ModelInput = tf_model.input_shape
         self.ModelOutput = tf_model.output_shape
-        self.OutputOffset = '[0,0,0,0]'
-        self.OutputScale = '[1,1,1,1]'
+        self.OutputOffset = [0, 0, 0, 0]
+        self.OutputScale = [1, 1, 1, 1]
 
     def get_dimensions(self, tf_model):
         """
@@ -45,14 +47,14 @@ class BioimageConfig:
         if input_dim[2] is None:
             self.FixedPatch = 'false'
             self.PatchSize = self.MinimumSize
-            if len(input_dim)==4:
+            if len(input_dim) == 4:
                 if input_dim[-1] is None:
                     self.InputOrganization0 = 'bcyx'
                     self.Channels = np.str(input_dim[1])
                 else:
                     self.InputOrganization0 = 'byxc'
                     self.Channels = np.str(input_dim[-1])
-            elif len(input_dim)==5:
+            elif len(input_dim) == 5:
                 if input_dim[-1] is None:
                     self.InputOrganization0 = 'bcyxz'
                     self.Channels = np.str(input_dim[1])
@@ -62,12 +64,12 @@ class BioimageConfig:
             else:
                 print("The input image has too many dimensions for DeepImageJ.")
 
-            if len(output_dim)==4:
+            if len(output_dim) == 4:
                 if output_dim[-1] is None:
                     self.OutputOrganization0 = 'bcyx'
                 else:
                     self.OutputOrganization0 = 'byxc'
-            elif len(output_dim)==5:
+            elif len(output_dim) == 5:
                 if output_dim[-1] is None:
                     self.OutputOrganization0 = 'bcyxz'
                 else:
@@ -94,12 +96,12 @@ class BioimageConfig:
             else:
                 print("The input image has too many dimensions for DeepImageJ.")
 
-            if len(output_dim)==4:
+            if len(output_dim) == 4:
                 if output_dim[-1] < output_dim[-2] and output_dim[-1] < output_dim[-3]:
                     self.OutputOrganization0 = 'byxc'
                 else:
                     self.OutputOrganization0 = 'bcyx'
-            elif len(output_dim)==5:
+            elif len(output_dim) == 5:
                 if output_dim[-1] < output_dim[-2] and output_dim[-1] < output_dim[-3]:
                     self.OutputOrganization0 = 'byxzc'
                 else:
@@ -128,12 +130,12 @@ class BioimageConfig:
         is used for image reconstruction when a entire image is processed.
         """
         input_shape = tf_model.input_shape
-        dim = np.ones(len(input_shape)-2, dtype=np.int)
+        dim = np.ones(len(input_shape) - 2, dtype=np.int)
         if self.FixedPatch == 'false':
             min_size = 50 * np.int(self.MinimumSize)
 
             if self.InputOrganization0 == 'byxc' or self.InputOrganization0 == 'byxzc':
-                dim = np.concatenate(([1],min_size*dim, [input_shape[-1]]))
+                dim = np.concatenate(([1], min_size * dim, [input_shape[-1]]))
                 null_im = np.zeros(dim, dtype=np.float32)
             else:
                 dim = np.concatenate(([1, input_shape[-1]], min_size * dim))
@@ -185,18 +187,18 @@ class BioimageConfig:
         # test_info = self.test_info
         # io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tiff'), self.test_info.InputImage)
         # io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tiff'), self.test_info.OutputImage)
-        
+
         # # store numpy arrays for future bioimage CI
         # np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'), self.test_info.InputImage)
         # np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'), self.test_info.OutputImage)
-        
+
         # print("Example images stored.")
 
         # write the DeepImageJ configuration as an xml file
         # write_config(self, test_info, deepimagej_model_path)
         write_config(self, deepimagej_model_path)
 
-        # # Add preprocessing and postprocessing macros. 
+        # # Add preprocessing and postprocessing macros.
         # # More than one is available, but the first one is set by default.
         # for i in range(len(self.Preprocessing)):
         #     shutil.copy2(self.Preprocessing_files[i], os.path.join(deepimagej_model_path, self.Preprocessing[i]))
@@ -250,6 +252,7 @@ class BioimageConfig:
                                                  [saved_model.tag_constants.SERVING],
                                                  signature_def_map=signature_def_map)
             builder.save()
+            shutil.make_archive(deepimagej_model_path, 'zip', self.WeightsTF)
             print("TensorFlow model exported to {0}".format(deepimagej_model_path))
 
         if TF_VERSION[0] == '1':
@@ -265,6 +268,7 @@ class BioimageConfig:
                 _model = clone_model(tf_model)
                 _model.set_weights(_weights)
                 _save_model()
+
 
 def write_config(Config, path2save):
     """
@@ -293,93 +297,32 @@ def write_config(Config, path2save):
     YAML_dict['cite'] = CITE
     YAML_dict['documentation']: Config.Documentation
     YAML_dict['date'] = Config.Date
-    YAML_dict['covers'] = 'My favourite image'
+    YAML_dict['covers'] = Config.CoverImage
     YAML_dict['format_version'] = Config.Format_version
     YAML_dict['license'] = Config.License
     YAML_dict['framework'] = 'TensorFlow'
     YAML_dict['language'] = 'Java'
     YAML_dict['source'] = Config.Source
     YAML_dict['tags'] = Config.Tags
-    YAML_dict['test_input'] = './exampleImage.tiff'
-    YAML_dict['test_output'] = './resultImage.tiff'
 
-    DIJ_CONFIG = {
-        'deepimagej': {
-            'pyramidal_model': Config.pyramidal_model,
-            'allow_tiling': Config.allow_tiling,
-            'model_keys': {'model_tag': 'tf.saved_model.tag_constants.SERVING',
-                           'signature_definition': 'tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY'},
-            'test_information': {
-                'device': 'CPU',
-                'inputs': {
-                    'name': 'raw',
-                    'size': 9,
-                    'pixel_size': {
-                        'x': 1,
-                        'y': 2, 
-                        'z': 3
-                    }
-                },
-                'outputs': {
-                    'name': A,
-                    'type': A,
-                    'size': A
-                },
-                'memory_peak': 'null',
-                'runtime': 'null'
-            },
-            'prediction': {
-                'preprocess':{
-                    'spec': 'ij.IJ::runMacroFile',
-                    'kwargs': 8 #'{}'.format(Config.Preprocessing[0])
-                },
-                'postprocess':{
-                    'spec': 'ij.IJ::runMacroFile',
-                    'kwargs': 8# '{}'.format(Config.Postprocessing[0])
-                }
-            }
-        }
-    }
+    DIJ_CONFIG = bioimage_spec_config_deepimagej(Config)
     YAML_dict['config'] = DIJ_CONFIG
 
-    MODEL_ID = {
-        'sha256': None,
-        'source': './saved_model.pb'
-    }
-    YAML_dict['model'] = MODEL_ID
-
-    WEIGHTS = [{'id': Config.WeightsVersion,
-                'name': Config.WeightsVersion,
-                'description': 'null',
-                'sha256': 'null',
-                'source': './variables'
-                }]
-    YAML_dict['weights'] = WEIGHTS
+    YAML_dict['weights']['tensorflow_saved_model_bundle']['source'] = Config.WeightsTF
     YAML_dict['inputs'] = input_definition(Config)
     YAML_dict['outputs'] = output_definition(Config)
 
-    YAML_dict['prediction']['weights'] = WEIGHTS[0]['id']
-    YAML_dict['prediction']['dependencies'] = 'deepimagej'
-
-    YAML_dict['prediction']['preprocess'] = {'kwargs': {'{}'.format(Config.Preprocessing[0])},
-                                             'spec': 'deepimagej.runMacro::preprocessing'}
-    print("Preprocessing macro '{}' set by default".format(Config.Preprocessing[0]))
-
-    YAML_dict['prediction']['postprocess'] = {'kwargs': {'{}'.format(Config.Postprocessing[0])},
-                                              'spec': 'deepimagej.runMacro::postprocessing'}
-    print("Postprocessing macro '{}' set by default".format(Config.Postprocessing[0]))
-
     try:
         with open(os.path.join(path2save, 'config.yaml'), 'w') as file:
-            documents = yaml.dump(YAML_dict, file)
+            documents = yaml.dump(YAML_dict, file, sort_keys=False)
             print("DeepImageJ configuration file exported.")
     except:
         print("The directory {} does not exist.".format(path2save))
 
-def input_definition(Config):
 
+def input_definition(Config):
     if Config.FixedPatch == 'true':
-        shape_dict = {'exact': '[{}]'.format(Config.InputTensorDimensions)}
+        shape_dict = '{}'.format(Config.InputTensorDimensions)
     else:
         min_size = np.ones(len(Config.ModelInput) - 2, dtype=np.int)
         if Config.InputOrganization0 == 'byxc' or Config.InputOrganization0 == 'byxzc':
@@ -391,13 +334,14 @@ def input_definition(Config):
 
         shape_dict = {'min': '{}'.format(min_size),
                       'step': '{}'.format(step_size)}
-
-    INPUTS = [{'name': 'raw',
+    # TODO: Consider multiple outputs and inputs
+    INPUTS = [{'name': 'input',
                'axes': Config.InputOrganization0,
                'data_type': 'float32',
                'data_range': '[-inf, inf]',
                'shape': shape_dict}]
     return INPUTS
+
 
 def output_definition(Config):
     if Config.OutputOrganization0 is not 'list':
@@ -407,9 +351,10 @@ def output_definition(Config):
         else:
             halo = np.concatenate(([0, 0], Config.Padding * min_size))
 
-    shape_dict = {'reference_input': '{}'.format(step_size),
-                  'offset': '{}'.Config.OutputOffset,
-                  'scale': '{}'.Config.OutputScale}
+    # TODO: Consider multiple outputs and inputs
+    shape_dict = {'reference_input': 'input',
+                  'offset': '{}'.format(Config.OutputOffset),
+                  'scale': '{}'.format(Config.OutputScale)}
 
     OUTPUTS = [{'axes': Config.OutputOrganization0,
                 'data_range': None,
@@ -418,18 +363,20 @@ def output_definition(Config):
                 'name': 'null',
                 'shape': shape_dict}]
     return OUTPUTS
+
+
 def bioimage_spec_config_deepimagej(Config):
-  preprocess = {}
-  for step in Config.Preprocessing:
-      preprocess.add({'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)})
-  postprocess = {}
-  for step in Config.Postprocessing:
-      postprocess.add({'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)})
-      
+    preprocess = []
+    for step in Config.Preprocessing:
+        preprocess + [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)}]
+        print("Preprocessing macro '{}' set by default".format(step))
 
+    postprocess = []
+    for step in Config.Postprocessing:
+        postprocess + [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)}]
+        print("Postprocessing macro '{}' set by default".format(step))
 
-
-  DIJ_CONFIG = {
+    DIJ_CONFIG = {
         'deepimagej': {
             'pyramidal_model': Config.pyramidal_model,
             'allow_tiling': Config.allow_tiling,
@@ -451,8 +398,8 @@ def bioimage_spec_config_deepimagej(Config):
                     'type': 8,
                     'size': 8
                 },
-                'memory_peak': 'null',
-                'runtime': 'null'
+                'memory_peak': None,
+                'runtime': None
             },
             'prediction': {
                 'preprocess': preprocess,
@@ -460,3 +407,4 @@ def bioimage_spec_config_deepimagej(Config):
             }
         }
     }
+    return DIJ_CONFIG
