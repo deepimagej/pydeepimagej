@@ -4,7 +4,7 @@ import urllib
 import shutil
 from skimage import io
 
-from DeepImageJConfig import DeepImageJConfig
+from ..DeepImageJConfig import DeepImageJConfig
 from ruamel.yaml import YAML
 import hashlib
 

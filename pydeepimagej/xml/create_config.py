@@ -40,7 +40,7 @@ import numpy as np
 import urllib
 import shutil
 from skimage import io
-from DeepImageJConfig import DeepImageJConfig
+from ..DeepImageJConfig import DeepImageJConfig
 
 """
 Download the template from this link: 
@@ -101,13 +101,14 @@ ijmacro = open(path_postprocessing,"w")
 ijmacro. writelines(list_of_lines)
 ijmacro. close()
 """
-class xmlConfig:
+class xmlConfig(DeepImageJConfig):
     # Import all the information needed for DeepImageJ
-    DeepImageJConfig.__init__(self, tf_model)
-
-    self.get_dimensions(tf_model)
-    # Receptive field of the network to process input
-    self.Padding = np.str(self._pixel_half_receptive_field(tf_model))
+    def __init__(self, tf_model):
+        DeepImageJConfig.__init__(self, tf_model)
+    
+        self.get_dimensions(tf_model)
+        # Receptive field of the network to process input
+        self.Padding = np.str(self._pixel_half_receptive_field(tf_model))
 
     def get_dimensions(self, tf_model):
         """
