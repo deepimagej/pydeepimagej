@@ -21,7 +21,8 @@ setup(
 	'numpy',
 	'scikit-image',
 # 	'yaml==5.1',
-    'ruamel.yaml'
+    'ruamel.yaml',
+    'hashlib'
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',
