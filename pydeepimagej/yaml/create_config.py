@@ -191,6 +191,10 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
         ziped_model = os.path.join(deepimagej_model_path,model_class.WeightsSource)
         ziped_model = ziped_model.split('.zip')[0]
         shutil.make_archive(ziped_model, 'zip', deepimagej_model_path)
+        try:
+            os.rmdir(os.path.join(deepimagej_model_path, 'variables'))
+            os.remove(os.path.join(deepimagej_model_path, 'saved_model.pb'))
+            
         with open(ziped_model + '.zip',"rb") as f:
             bytes = f.read() # read entire file as bytes
             readable_hash = hashlib.sha256(bytes).hexdigest();
