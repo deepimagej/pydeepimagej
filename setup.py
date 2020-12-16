@@ -20,8 +20,8 @@ setup(
   install_requires=[
 	'numpy',
 	'scikit-image',
-    'ruamel.yaml',
-    'hashlib'
+        'ruamel.yaml',
+        'zipfile36'
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',
