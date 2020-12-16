@@ -7,8 +7,7 @@ from skimage import io
 from ..DeepImageJConfig import DeepImageJConfig
 from ruamel.yaml import YAML
 import hashlib
-
-
+from zipfile import ZipFile
 
 def FSlist(l):  # concret list into flow-style (default is block style)
     from ruamel.yaml.comments import CommentedSeq
@@ -34,7 +33,7 @@ def get_dimensions(tf_model, MinimumSize):
     # or not
     if input_dim[2] is None:
         FixedPatch = 'false'
-        PatchSize = MinimumSize
+        PatchSize = [MinimumSize]*(len(input_dim)-1)
         if len(input_dim)==4:
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyx'
@@ -64,9 +63,11 @@ def get_dimensions(tf_model, MinimumSize):
                 OutputOrganization0 = 'byxzc'
         else:
             print("The output has too many dimensions for DeepImageJ.")
+
+
     else:
         FixedPatch = 'true'
-        PatchSize = np.str(input_dim[2])
+        PatchSize = input_dim[1:-1]
         if len(input_dim) == 4:
             if input_dim[-1] < input_dim[-2] and input_dim[-1] < input_dim[-3]:
                 InputOrganization0 = 'byxc'
@@ -121,19 +122,19 @@ def _pixel_half_receptive_field(model_class, tf_model):
     else:
         null_im = np.zeros((input_shape[1:]), dtype=np.float32)
         null_im = np.expand_dims(null_im, axis=0)
-        min_size = np.int(model_class.PatchSize)
+        min_size = model_class.PatchSize
 
     point_im = np.zeros_like(null_im)
-    min_size = np.int(min_size / 2)
+    min_size = [int(m/2) for m in min_size]
 
     if model_class.InputOrganization0 == 'byxc':
-        point_im[0, min_size, min_size] = 1
+        point_im[0, min_size[0], min_size[1]] = 1
     elif model_class.InputOrganization0 == 'byxzc':
-        point_im[0, min_size, min_size, min_size] = 1
+        point_im[0,  min_size[0], min_size[1], min_size[2]] = 1
     elif model_class.InputOrganization0 == 'bcyx':
-        point_im[0, :, min_size, min_size] = 1
+        point_im[0, :, min_size[0], min_size[1]] = 1
     else:
-        point_im[0, :, min_size, min_size, min_size] = 1
+        point_im[0, :, min_size[0], min_size[1], min_size[2]] = 1
 
     result_unit = tf_model.predict(np.concatenate((null_im, point_im)))
 
@@ -144,11 +145,13 @@ def _pixel_half_receptive_field(model_class, tf_model):
     else:
         D = D[0]
     if model_class.OutputOrganization0 == 'byxc':
-        ind = np.where(D[:min_size, :min_size] == 1)
+        ind = np.where(D[:min_size[0], :min_size[1]] == 1)
     else:
-        ind = np.where(D[:min_size, :min_size, :min_size] == 1)
+        ind = np.where(D[:min_size[0], :min_size[1], :min_size[2]] == 1)
     halo = np.min(ind[1])
     halo = min_size - halo + 1
+
+    halo = [np.max((0,h)) for h in halo]
 
     return halo
 
@@ -188,18 +191,39 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
                                               [saved_model.tag_constants.SERVING],
                                               signature_def_map=signature_def_map)
         builder.save()
-        ziped_model = os.path.join(deepimagej_model_path,model_class.WeightsSource)
-        ziped_model = ziped_model.split('.zip')[0]
-        shutil.make_archive(ziped_model, 'zip', deepimagej_model_path)
+        print("TensorFlow model exported to {0}".format(deepimagej_model_path))
+
+
+        ziped_model = os.path.join(deepimagej_model_path, model_class.WeightsSource)
+
+        filePaths = []
+
+        # Add multiple files to the zip
+        # zipObj.write(os.path.join(deepimagej_model_path, 'saved_model.pb'), os.path.basename(os.path.join(deepimagej_model_path, 'saved_model.pb')))
+        for folderNames, subfolder, filenames in os.walk(os.path.join(deepimagej_model_path)):
+            for filename in filenames:
+              # create complete filepath of file in directory
+              filePaths.append(os.path.join(folderNames, filename))
+              print(filePaths)
+        zipObj = ZipFile(ziped_model, 'w')
+        
+        for f in filePaths:
+            # Add file to zip
+            zipObj.write(f, os.path.basename(f))
+        # close the Zip File
+        zipObj.close()
+
         try:
-            os.rmdir(os.path.join(deepimagej_model_path, 'variables'))
-            os.remove(os.path.join(deepimagej_model_path, 'saved_model.pb'))
-            
-        with open(ziped_model + '.zip',"rb") as f:
+            shutil.rmtree(os.path.join(deepimagej_model_path, 'variables'))
+            shutil.rmtree()
+        except:
+            print("TensorFlow bundled model was not removed after compression")
+        
+        with open(ziped_model,"rb") as f:
             bytes = f.read() # read entire file as bytes
             readable_hash = hashlib.sha256(bytes).hexdigest();
         print("TensorFlow model exported to {0}".format(deepimagej_model_path))
-        
+
         return readable_hash
 
     if TF_VERSION[0] == '1':
@@ -262,9 +286,9 @@ def output_definition(Config, YAML_dict):
     if Config.OutputOrganization0 != 'list':
       #TODO: consider 3D+ outputs for the halo
         if Config.OutputOrganization0 == 'byxc' or Config.OutputOrganization0 == 'byxzc':
-            halo = list([0] + [int(Config.Halo)] * (len(Config.ModelOutput) - 2) + [0])
+            halo = list([0] + Config.Halo + [0])
         else:
-            halo = list([0, 0] + [int(Config.Halo)] * (len(Config.ModelOutput) - 2))
+            halo = list([0, 0] + Config.Halo)
     halo = [int(h) for h in halo]
     # TODO: Consider multiple outputs and inputs
     OUTPUTS = [{'name': 'output',
@@ -344,9 +368,14 @@ def write_config(Config, path2save):
 
 
 def bioimage_spec_config_deepimagej(Config, YAML_dict):
-  preprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Preprocessing]
-  postprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Postprocessing]
-
+  if Config.Preprocessing is not None:
+      preprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Preprocessing]
+  else:
+      preprocess = None
+  if Config.Postprocessing is not None:
+      postprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Postprocessing]
+  else:
+      postprocess = None
   if hasattr(Config, 'test_info'):
       
     if len(Config.test_info.PixelSize) == 3:
@@ -422,8 +451,8 @@ class BioimageConfig(DeepImageJConfig):
                 self.Halo = _pixel_half_receptive_field(self, tf_model)
         except:
             print(colors.GREEN + 'pydeepimagej is not able to specify the inputs and output information.')
-            print('Please, include the parameters (InputTensorDimensions, OutputTensorDimensions, \
-                  InputOrganization0, OutputOrganization0, FixedPatch, PatchSize and Padding,  manually.' + colors.WHITE)
+            print('Please, include the parameters (InputTensorDimensions, OutputTensorDimensions,')
+            print('InputOrganization0, OutputOrganization0, FixedPatch, PatchSize and Padding,  manually.' + colors.WHITE)
 
         self.ModelInput = tf_model.input_shape
         self.ModelOutput = tf_model.output_shape
@@ -431,6 +460,8 @@ class BioimageConfig(DeepImageJConfig):
         self.OutputScale = [1 for v in self.ModelInput]
         self.pyramidal_model = False
         self.allow_tiling = False
+        self.Preprocessing = None
+        self.Postprocessing = None
 
     class TestImage:
         def __add__(self, input_im, output_im, output_type, pixel_size):
@@ -461,7 +492,7 @@ class BioimageConfig(DeepImageJConfig):
         if self.Framework == 'TensorFlow':
             self.WeightsSource = 'tensorflow_saved_model_bundle.zip'
             self.ModelHash = save_tensorflow_pb(self, tf_model, deepimagej_model_path)
-            
+
         elif self.Framework == 'TensoFlow-JS':
             self.WeightsSource = 'tensorflow_javascript.zip'
 
@@ -484,13 +515,16 @@ class BioimageConfig(DeepImageJConfig):
 
         # Add preprocessing and postprocessing macros. 
         # More than one is available, but the first one is set by default.
-        for i in range(len(self.Preprocessing)):
-            shutil.copy2(self.Preprocessing_files[i], os.path.join(deepimagej_model_path, self.Preprocessing[i]))
-            print("ImageJ macro {} included in the bundled model.".format(self.Preprocessing[i]))
-
-        for i in range(len(self.Postprocessing)):
-            shutil.copy2(self.Postprocessing_files[i], os.path.join(deepimagej_model_path, self.Postprocessing[i]))
-            print("ImageJ macro {} included in the bundled model.".format(self.Postprocessing[i]))
+        
+        if self.Preprocessing is not None:
+            for i in range(len(self.Preprocessing)):
+                shutil.copy2(self.Preprocessing_files[i], os.path.join(deepimagej_model_path, self.Preprocessing[i]))
+                print("ImageJ macro {} included in the bundled model.".format(self.Preprocessing[i]))
+        
+        if self.Postprocessing is not None:
+            for i in range(len(self.Postprocessing)):
+                shutil.copy2(self.Postprocessing_files[i], os.path.join(deepimagej_model_path, self.Postprocessing[i]))
+                print("ImageJ macro {} included in the bundled model.".format(self.Postprocessing[i]))
 
         # Zip the bundled model to download
         shutil.make_archive(deepimagej_model_path, 'zip', deepimagej_model_path)
