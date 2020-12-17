@@ -4,15 +4,16 @@
 [![minimal Python version](https://img.shields.io/badge/Python-3-6666ff.svg)](https://www.anaconda.com/distribution/)
 
 Python code to export trained models and read them in Fiji & ImageJ using DeepImageJ plugin
-  - Create a configuration class in python with all the information about the trained model, needed for its correct use in Fiji & ImageJ.
-  - Include the metadata of an example image.
-  - Include all expected results and needed pre / post-processing routines.
+  - Creates a configuration class in python with all the information about the trained model, needed for its correct use in Fiji & ImageJ.
+  - Includes the metadata of an example image.
+  - Includes all expected results and needed pre / post-processing routines.
   - See [DeepImageJ webpage](https://deepimagej.github.io/deepimagej/) for more information. 
 
 ### Installation
 **Requirements**
 - PyDeepImageJ requires Python 3 to run. 
 - TensorFlow: It runs using the local installation of TensorFlow, i.e. the one corresponding to the trained model. However, DeepImageJ is only compatible with TensorFlow versions <= 2.2.1.
+
 
 To install PyDeepImageJ either clone this repository or use PyPi via `pip`:
 
@@ -104,7 +105,10 @@ dij_config.MinimumSize = np.str(2**(pooling_steps))
 ````
 ### Todo list
 
- - Write bioimage.IO config.yaml class
+ - Addapt pydeepimagej to PyTorch models so it can export trained models into TorchScript format.
+ - Addapt pydeepimagej to image2void trained models.
+ - Consider multiple inputs and outputs.
+ - Include pre and post-processing routines as specified in the Bioimage.IO.
 
 Reference: 
 ----
