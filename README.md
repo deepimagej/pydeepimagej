@@ -4,7 +4,7 @@
 [![minimal Python version](https://img.shields.io/badge/Python-3-6666ff.svg)](https://www.anaconda.com/distribution/)
 
 Python code to export trained models and read them in Fiji & ImageJ using DeepImageJ plugin
-  - Creates a configuration class in python with all the information about the trained model, needed for its correct use in Fiji & ImageJ.
+  - Creates a configuration class in python with all the information about the trained model needed for its correct use in Fiji & ImageJ.
   - Includes the metadata of an example image.
   - Includes all expected results and needed pre / post-processing routines.
   - See [DeepImageJ webpage](https://deepimagej.github.io/deepimagej/) for more information. 
@@ -31,7 +31,7 @@ $ python setup.py install
 
 Let `model` be a Keras or TensorFlow trained model. Initialize the configuration class with the trained model `model`
 ````
-dij_config = DeepImageJConfig(model)
+dij_config = BioimageConfig(model)
 ````
 Update model information
 ````
@@ -103,7 +103,7 @@ for keras_layer in model.layers:
       pooling_steps += 1
 dij_config.MinimumSize = np.str(2**(pooling_steps))
 ````
-### Todo list
+### TODO list
 
  - Addapt pydeepimagej to PyTorch models so it can export trained models into TorchScript format.
  - Addapt pydeepimagej to image2void trained models.
