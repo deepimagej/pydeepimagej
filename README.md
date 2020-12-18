@@ -103,6 +103,24 @@ for keras_layer in model.layers:
       pooling_steps += 1
 dij_config.MinimumSize = np.str(2**(pooling_steps))
 ````
+### Exceptions
+pydeepimagej is meant to connect Python with DeepImageJ so images can be processed in the Fiji/ImageJ ecosystem. Hence, images (tensors) are expected to have at least 3 dimensions: height, width and channels. For this reason, models with input shapes of less than 4 dimensions (`model.input_shape = [batch, height, width, channels]` are not considered. For example, if you have the following situation:
+```python
+model = tf.keras.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dense(10)
+])
+```
+please, modify it to
+```python
+model = tf.keras.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28, 1)),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dense(10)
+])
+```
+
 ### TODO list
 
  - Addapt pydeepimagej to PyTorch models so it can export trained models into TorchScript format.
