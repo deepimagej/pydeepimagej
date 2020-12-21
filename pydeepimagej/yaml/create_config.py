@@ -20,7 +20,17 @@ class colors:
     RED = '\033[31m'
     GREEN = '\033[32m'
     
-    
+def hash_sha256(filename):
+    """
+    filename: full path together with the name of the file for which the hashcode is calculated.
+    """
+    with open(filename,"rb") as f:
+        bytes = f.read() # read entire file as bytes
+        sha256 = hashlib.sha256(bytes).hexdigest();
+    return sha256
+
+
+
 def get_dimensions(tf_model, MinimumSize):
     """
     Calculates the array organization and shapes of inputs and outputs.
@@ -256,20 +266,31 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
 
 
 def weights_definition(Config, YAML_dict):
-  # TODO: Consider multiple outputs and inputs
-    WEIGHTS = {'source': './' + Config.WeightsSource,
-              'sha256': Config.ModelHash,
-              'test_input': './exampleImage.tiff',
-              'test_output': './resultImage.tiff'
-              }
-    if Config.Framework == 'TensorFlow':
-        YAML_dict['weights'] = {'tensorflow_saved_model_bundle': WEIGHTS}
 
-    elif Config.Framework == 'TensoFlow-JS':
-        YAML_dict['weights'] = {'tensorflow_js': WEIGHTS}
+    YAML_dict['weights'] = {}
 
-    elif Config.Framework == 'PyTorch-JS':
-        YAML_dict['weights'] = {'pytorch_script': WEIGHTS}
+    for W in Config.Weights:
+        # TODO: Consider multiple outputs and inputs
+          WEIGHTS = {'source': './' + W.WeightsSource,
+                    'sha256': W.ModelHash
+                    }
+          if hasattr(W, 'FormatParent'):
+              WEIGHTS['parent'] = W.FormatParent
+
+          if hasattr(W, 'Authors'):
+              WEIGHTS['parent'] = W.Authors
+              
+          if W.Framework == 'TensorFlow':
+              YAML_dict['weights'].update({'tensorflow_saved_model_bundle': WEIGHTS})
+
+          elif W.Framework == 'KerasHDF5':
+              YAML_dict['weights'].update({'keras_hdf5': WEIGHTS})
+
+          elif W.Framework == 'TensoFlow-JS':
+              YAML_dict['weights'].update({'tensorflow_js': WEIGHTS})
+
+          elif W.Framework == 'PyTorch-JS':
+              YAML_dict['weights'].update({'pytorch_script': WEIGHTS})
 
     return YAML_dict
 
@@ -353,7 +374,12 @@ def write_config(Config, path2save):
                                 'text': Config.References[i]} for i in range(len(Config.References))]
     else:
         YAML_dict['cite'] = None
-        
+
+    if hasattr(Config, 'Parent') and Config.Parent is not None:
+        YAML_dict['parent'] = {'uri': Config.Parent,
+                              'sha256': None
+                              }
+
     YAML_dict['documentation']: Config.Documentation
     YAML_dict['date'] = Config.Date
     YAML_dict['covers'] = Config.CoverImage
@@ -365,12 +391,23 @@ def write_config(Config, path2save):
     YAML_dict['tags'] = Config.Tags
     YAML_dict['git_repo'] = Config.GitHub
 
-    dij_config = bioimage_spec_config_deepimagej(Config, YAML_dict)
-    YAML_dict['config'] = dij_config
-    
+    if hasattr(Config, 'test_info'):
+        YAML_dict['sample_inputs'] = ['./exampleImage.tif']        
+        YAML_dict['test_inputs'] = ['./exampleImage.npy']
+
+        if Config.test_info.Output_type == 'image':
+            YAML_dict['sample_outputs'] = ['.resultImage.tif']
+            YAML_dict['test_outputs'] = ['.resultImage.npy']
+        else:
+            YAML_dict['sample_outputs'] = ['.resultTable.csv']
+            YAML_dict['test_outputs'] = ['.resultTable.npy']
+   
     YAML_dict = weights_definition(Config, YAML_dict)
     YAML_dict = input_definition(Config, YAML_dict)
     YAML_dict = output_definition(Config, YAML_dict)
+
+    dij_config = bioimage_spec_config_deepimagej(Config, YAML_dict)
+    YAML_dict['config'] = dij_config
 
     YAML_dict.default_flow_style = False
 
@@ -455,7 +492,7 @@ class BioimageConfig(DeepImageJConfig):
         self.Source = None
         self.Tags = ['deepimagej']
         self.CoverImage = None
-        # TODO: detect model framework (at least among pytorch and TF)??
+        # TODO: detect model framework (at least among pytorch and TF)?
         self.Framework = 'TensorFlow'
         self.GitHub = None
         self.Source = None
@@ -513,44 +550,73 @@ class BioimageConfig(DeepImageJConfig):
             output_type = 'image'
         self.test_info.__add__(input_im, output_im, output_type, pixel_size)
 
-    def export_model(self, tf_model, deepimagej_model_path, **kwargs):
+    class WeightsFormat:
+        def __init__(self, model, format, parent, authors):
+            if parent is not None:
+                self.FormatParent = parent
+            if authors is not None:
+                self.Authors = Authors            
+            self.Framework = format
+            self.Model = model
+
+    def add_weights_formats(self, model, format, parent=None, authors=None):
+        if not hasattr(self, 'Weights'):
+            self.Weights = []
+
+        self.Weights.append(self.WeightsFormat(model, format, parent, authors))
+
+    def export_model(self, deepimagej_model_path, **kwargs):
         """
         Main function to export the model as a bundled model of DeepImageJ
-        tf_model:              tensorflow/keras model
+        self.Weights should contain at least one model
+            W = self.Weights[0]
+            W.Model is a model.
         deepimagej_model_path: directory where DeepImageJ model is stored.
         """
         # # Save the mode as protobuffer
         ## TODO: Sotore JS and PyTorch models.
-        if self.Framework == 'TensorFlow':
-            self.WeightsSource = 'tensorflow_saved_model_bundle.zip'
-            self.ModelHash = save_tensorflow_pb(self, tf_model, deepimagej_model_path)
+        for W in self.Weights:
+            if W.Framework == 'TensorFlow':
+                W.WeightsSource = 'tensorflow_saved_model_bundle.zip'
+                W.ModelHash = save_tensorflow_pb(W, W.Model, deepimagej_model_path)
+            
+            elif W.Framework == 'KerasHDF5':
+                W.WeightsSource = 'keras_model.h5'
+                W.Model.save(os.path.join(deepimagej_model_path, W.WeightsSource))
+                W.ModelHash = hash_sha256(os.path.join(deepimagej_model_path, W.WeightsSource))
 
-        elif self.Framework == 'TensoFlow-JS':
-            self.WeightsSource = 'tensorflow_javascript.zip'
+            elif W.Framework == 'TensoFlow-JS':
+                W.WeightsSource = 'tensorflow_javascript.zip'
+                W.ModelHash = hash_sha256(os.path.join(deepimagej_model_path, W.WeightsSource))
 
-        elif self.Framework == 'PyTorch-JS':
-            self.WeightsSource = 'pytorch_script.pt'      
-        
+            elif W.Framework == 'PyTorch-JS':
+                W.WeightsSource = 'pytorch_script.pt'
+                W.ModelHash = hash_sha256(os.path.join(deepimagej_model_path, W.WeightsSource))   
+
         if hasattr(self, 'test_info'):
             # extract the information about the testing image
-            io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tiff'),
+            io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tif'),
                       self.test_info.InputImage)
+            # store numpy arrays for future bioimage CI
+            np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
+                    self.test_info.InputImage)
+            
             if self.test_info.Output_type == 'image':
-                io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tiff'),
+                io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tif'),
                           self.test_info.OutputImage)
+                # store numpy arrays for future bioimage CI
+                np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
+                        self.test_info.OutputImage)
+                
             else:
                 columns = ['C{}'.format(c+1) for c in range(self.test_info.OutputImage.shape[-1])]
                 columns = ','.join(columns) 
                 np.savetxt(os.path.join(deepimagej_model_path, 'resultTable.csv'),
                            self.test_info.OutputImage, delimiter=",",
                            header=columns, comments="")
-                
-            # store numpy arrays for future bioimage CI
-            np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
-                    self.test_info.InputImage)
-            np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
-                    self.test_info.OutputImage)
-            
+                # store numpy arrays for future bioimage CI
+                np.save(os.path.join(deepimagej_model_path, 'resultTable.npy'),
+                        self.test_info.OutputImage)
             print("Example images stored.")
 
         # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
