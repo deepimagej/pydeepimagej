@@ -218,17 +218,17 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
               # create complete filepath of file in directory
               filePaths.append(os.path.join(folderNames, filename))
               print(filePaths)
-        zipObj = ZipFile(ziped_model, 'w')
-        
+
+        zipObj = ZipFile(ziped_model, 'w')        
         for f in filePaths:
             # Add file to zip
-            zipObj.write(f, os.path.basename(f))
+            zipObj.write(f, os.path.relpath(f,deepimagej_model_path))
         # close the Zip File
         zipObj.close()
 
         try:
             shutil.rmtree(os.path.join(deepimagej_model_path, 'variables'))
-            shutil.rmtree()
+            os.remove(os.path.join(deepimagej_model_path, 'saved_model.pb'))
         except:
             print("TensorFlow bundled model was not removed after compression")
         
