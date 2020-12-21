@@ -395,15 +395,19 @@ def bioimage_spec_config_deepimagej(Config, YAML_dict):
   else:
       postprocess = None
   if hasattr(Config, 'test_info'):
-      
-    if len(Config.test_info.PixelSize) == 3:
-      pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
-                    'y': '{} µm'.format(Config.test_info.PixelSize[1]),
-                    'z': '{} µm'.format(Config.test_info.PixelSize[2])}
+    if Config.test_info.PixelSize is not None:
+        if len(Config.test_info.PixelSize) == 3:
+          pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
+                        'y': '{} µm'.format(Config.test_info.PixelSize[1]),
+                        'z': '{} µm'.format(Config.test_info.PixelSize[2])}
+        else:
+          pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
+                        'y': '{} µm'.format(Config.test_info.PixelSize[1]),
+                        'z': '1.0 pixel'}
     else:
-      pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
-                    'y': '{} µm'.format(Config.test_info.PixelSize[1]),
-                    'z': '1.0 pixel'}
+          pixel_size = {'x': '1.0 pixel',
+                        'y': '1.0 pixel',
+                        'z': '1.0 pixel'}  
 
     test_information = {
       'device': None, #TODO: check if DeepImageJ admits null
@@ -480,7 +484,10 @@ class BioimageConfig(DeepImageJConfig):
         self.OutputOffset = [0 for v in self.ModelInput]
         self.OutputScale = [1 for v in self.ModelInput]
         self.pyramidal_model = False
-        self.allow_tiling = False
+        if self.OutputOrganization0 == 'list' or self.OutputOrganization0 == 'null':
+            self.allow_tiling = False
+        else:
+            self.allow_tiling = True
         self.Preprocessing = None
         self.Postprocessing = None
 
@@ -492,14 +499,18 @@ class BioimageConfig(DeepImageJConfig):
             self.Input_shape = ' x '.join([np.str(i) for i in input_im.shape])
             self.InputImage = input_im
             self.Output_shape = ' x '.join([np.str(i) for i in output_im.shape])
-            self.Output_type = output_type
+            self.Output_type =  output_type
             self.OutputImage = output_im
             self.MemoryPeak = None
             self.Runtime = None
             self.PixelSize = pixel_size
 
-    def add_test_info(self, input_im, output_im, output_type, pixel_size):
+    def add_test_info(self, input_im, output_im, pixel_size=None):
         self.test_info = self.TestImage()
+        if self.OutputOrganization0 == 'list' or self.OutputOrganization0 == 'null':
+            output_type = 'ResultsTable'
+        else:
+            output_type = 'image'
         self.test_info.__add__(input_im, output_im, output_type, pixel_size)
 
     def export_model(self, tf_model, deepimagej_model_path, **kwargs):
@@ -522,12 +533,23 @@ class BioimageConfig(DeepImageJConfig):
         
         if hasattr(self, 'test_info'):
             # extract the information about the testing image
-            io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tiff'), self.test_info.InputImage)
-            io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tiff'), self.test_info.OutputImage)
-            
+            io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tiff'),
+                      self.test_info.InputImage)
+            if self.test_info.Output_type == 'image':
+                io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tiff'),
+                          self.test_info.OutputImage)
+            else:
+                columns = ['C{}'.format(c+1) for c in range(self.test_info.OutputImage.shape[-1])]
+                columns = ','.join(columns) 
+                np.savetxt(os.path.join(deepimagej_model_path, 'resultTable.csv'),
+                           self.test_info.OutputImage, delimiter=",",
+                           header=columns, comments="")
+                
             # store numpy arrays for future bioimage CI
-            np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'), self.test_info.InputImage)
-            np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'), self.test_info.OutputImage)
+            np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
+                    self.test_info.InputImage)
+            np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
+                    self.test_info.OutputImage)
             
             print("Example images stored.")
 
