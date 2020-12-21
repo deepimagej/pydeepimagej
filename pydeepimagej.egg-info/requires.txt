@@ -1,4 +1,0 @@
-numpy
-scikit-image==0.17.2
-ruamel.yaml
-zipfile36
