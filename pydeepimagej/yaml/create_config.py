@@ -20,6 +20,7 @@ class colors:
     RED = '\033[31m'
     GREEN = '\033[32m'
     
+    
 def get_dimensions(tf_model, MinimumSize):
     """
     Calculates the array organization and shapes of inputs and outputs.
@@ -51,7 +52,13 @@ def get_dimensions(tf_model, MinimumSize):
         else:
             print("The input image has too many dimensions for DeepImageJ.")
 
-        if len(output_dim)==4:
+        if len(output_dim) < 3:
+          # Output is a list
+            OutputOrganization0 = 'null' 
+        elif len(output_dim) == 3:
+          # This case might be completely unusual
+            OutputOrganization0 = 'byx' 
+        elif len(output_dim)==4:
             if output_dim[-1] is None:
                 OutputOrganization0 = 'bcyx'
             else:
@@ -85,7 +92,13 @@ def get_dimensions(tf_model, MinimumSize):
         else:
             print("The input image has too many dimensions for DeepImageJ.")
 
-        if len(output_dim)==4:
+        if len(output_dim) < 3:
+          # Output is a list
+            OutputOrganization0 = 'null' 
+        elif len(output_dim) == 3:
+          # This case might be completely unusual
+            OutputOrganization0 = 'byx' 
+        elif len(output_dim)==4:
             if output_dim[-1] < output_dim[-2] and output_dim[-1] < output_dim[-3]:
                 OutputOrganization0 = 'byxc'
             else:
@@ -283,18 +296,23 @@ def input_definition(Config, YAML_dict):
     return YAML_dict
 
 def output_definition(Config, YAML_dict):
-    if Config.OutputOrganization0 != 'list':
-      #TODO: consider 3D+ outputs for the halo
-        if Config.OutputOrganization0 == 'byxc' or Config.OutputOrganization0 == 'byxzc':
-            halo = list([0] + Config.Halo + [0])
-        else:
-            halo = list([0, 0] + Config.Halo)
-    halo = [int(h) for h in halo]
     # TODO: Consider multiple outputs and inputs
     OUTPUTS = [{'name': 'output',
                 'axes': Config.OutputOrganization0,
                 'data_range': '[-inf, inf]',
                 'data_type': 'float32'}]
+
+    if Config.OutputOrganization0 != 'list' and Config.OutputOrganization0 != 'null':
+        #TODO: consider 3D+ outputs for the halo
+        if Config.OutputOrganization0[-1] == 'c':
+            halo = list([0] + Config.Halo + [0])
+        else:
+            halo = list([0, 0] + Config.Halo)
+        halo = [int(h) for h in halo]
+    else:
+        # Note that the output has not the dimensions of the input so this might not be conceptually correct.
+        halo = [0 for v in Config.ModelInput]
+    
     YAML_dict['outputs'] = OUTPUTS
     YAML_dict['outputs'][0]['halo'] = FSlist(halo)
     YAML_dict['outputs'][0]['shape'] = {'reference_input': 'input',
@@ -326,7 +344,7 @@ def write_config(Config, path2save):
     YAML_dict['name'] = Config.Name
     YAML_dict['description'] = Config.Description
     YAML_dict['authors'] = Config.Authors
-    if Config.References is not None:
+    if Config.References is not None and Config.References != 'null':
         if len(Config.References) == len(Config.DOI):
             YAML_dict['cite'] = [{'doi': Config.DOI[i],
                                 'text': Config.References[i]} for i in range(len(Config.References))]
@@ -446,13 +464,16 @@ class BioimageConfig(DeepImageJConfig):
             self.OutputOrganization0 = OA
             self.FixedPatch = F
             self.PatchSize = P
-            # Receptive field of the network to process input
-            if self.OutputOrganization0 != 'list':
-                self.Halo = _pixel_half_receptive_field(self, tf_model)
         except:
             print(colors.GREEN + 'pydeepimagej is not able to specify the inputs and output information.')
             print('Please, include the parameters (InputTensorDimensions, OutputTensorDimensions,')
             print('InputOrganization0, OutputOrganization0, FixedPatch, PatchSize and Padding,  manually.' + colors.WHITE)
+        try:       
+            # Receptive field of the network to process input
+            if self.OutputOrganization0 != 'list' and self.OutputOrganization0 != 'null':
+                self.Halo = _pixel_half_receptive_field(self, tf_model)
+        except:
+            print(colors.GREEN + 'The halo of the model is undetermined.' + colors.WHITE)
 
         self.ModelInput = tf_model.input_shape
         self.ModelOutput = tf_model.output_shape

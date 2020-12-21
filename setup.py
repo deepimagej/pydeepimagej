@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
   name = 'pydeepimagej',
   packages = find_packages(),
-  version = '2.0.0',   
+  version = '2.0.1',   
   license = 'BSD 2-Clause License',   
   description = 'Python package to export TensorFlow models as DeepImageJ bundled models',
   long_description=long_description,
@@ -19,7 +19,7 @@ setup(
   python_requires='>=3.0',
   install_requires=[
 	'numpy',
-	'scikit-image',
+	'scikit-image==0.17.2',
         'ruamel.yaml',
         'zipfile36'
       ],
