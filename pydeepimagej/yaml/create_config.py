@@ -227,7 +227,6 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
             for filename in filenames:
               # create complete filepath of file in directory
               filePaths.append(os.path.join(folderNames, filename))
-              print(filePaths)
 
         zipObj = ZipFile(ziped_model, 'w')        
         for f in filePaths:
@@ -489,7 +488,6 @@ class BioimageConfig(DeepImageJConfig):
         self.Documentation = None
         self.Format_version = '0.3.0' # bioimage.IO
         self.License = 'BSD-3'
-        self.Source = None
         self.Tags = ['deepimagej']
         self.CoverImage = None
         # TODO: detect model framework (at least among pytorch and TF)?
@@ -555,7 +553,7 @@ class BioimageConfig(DeepImageJConfig):
             if parent is not None:
                 self.FormatParent = parent
             if authors is not None:
-                self.Authors = Authors            
+                self.Authors = authors            
             self.Framework = format
             self.Model = model
 
@@ -637,6 +635,4 @@ class BioimageConfig(DeepImageJConfig):
 
         # Zip the bundled model to download
         shutil.make_archive(deepimagej_model_path, 'zip', deepimagej_model_path)
-        print(
-            "DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.".format(
-                deepimagej_model_path))
+        print(colors.GREEN + 'DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.'.format(deepimagej_model_path) + colors.WHITE)
