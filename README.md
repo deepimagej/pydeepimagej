@@ -9,8 +9,8 @@ Python code to export trained models and read them in Fiji & ImageJ using DeepIm
   - Includes all expected results and needed pre / post-processing routines.
   - See [DeepImageJ webpage](https://deepimagej.github.io/deepimagej/) for more information. 
 
-### Installation
-**Requirements**
+### Requirements & Installation
+
 - PyDeepImageJ requires Python 3 to run. 
 - TensorFlow: It runs using the local installation of TensorFlow, i.e. the one corresponding to the trained model. However, DeepImageJ is only compatible with TensorFlow versions <= 2.2.1.
 
@@ -24,9 +24,10 @@ or
 ```sh
 $ git clone https://github.com/deepimagej/pydeepimagej.git
 $ cd pydeepimagej
-$ !pip install .
+$ pip install .
 ```
 ----
+
 ### Reference: 
 E. Gómez-de-Mariscal, C. García-López-de-Haro, L. Donati, M. Unser, A. Muñoz-Barrutia, D. Sage. 
 *DeepImageJ: A user-friendly plugin to run deep learning models in ImageJ*, bioRxiv 2019
@@ -40,6 +41,7 @@ Copyright © 2019. Universidad Carlos III, Madrid; Spain and EPFL, Lausanne, Swi
 #### License
 
 [BSD 2-Clause License](https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/LICENSE)
+
 ----
 
 ### Example of how to use it
@@ -66,7 +68,7 @@ dij_config.Framework = 'TensorFlow'
 
 ````
 **Prepare an ImageJ pre/post-processing macro.** 
-You may need to preprocess the input image before the inference. Some ImageJ macro routines can be downloaded from [here](https://github.com/deepimagej/imagej-macros/) and included in the model specifications. Note that ImageJ macros are text files so it is easy to modify them inside a Python script ([see an example](https://github.com/deepimagej/pydeepimagej/blob/master/README.md#additional-commands)). To add any ImageJ macro code we need to run `add_preprocessing(local_path_to_the_macro_file, "name_to_store_the_macro_in_the_bundled_model")':
+You may need to preprocess the input image before the inference. Some ImageJ macro routines can be downloaded from [here](https://github.com/deepimagej/imagej-macros/) and included in the model specifications. Note that ImageJ macros are text files so it is easy to modify them inside a Python script ([see an example](https://github.com/deepimagej/pydeepimagej/blob/master/README.md#additional-commands)). To add any ImageJ macro code we need to run `add_preprocessing(local_path_to_the_macro_file, 'name_to_store_the_macro_in_the_bundled_model')`:
 ````python
 path_preprocessing = "PercentileNormalization.ijm"`
 # Download the macro file
@@ -81,10 +83,10 @@ urllib.request.urlretrieve("https://raw.githubusercontent.com/deepimagej/imagej-
 # Include the info about the postprocessing 
 dij_config.add_postprocessing(path_postprocessing,"postprocessing")
 ````
-DeepImageJ accepts two pre/post-processing routines. The images will be processed in the order in which we include them with `add_postprocessing`. Thus, in this example, the output of the model is first binarized with `"8bitBinarize.ijm"` and then, processed with `"another_macro.ijm"`: 
+DeepImageJ accepts two pre/post-processing routines. The images will be processed in the order in which we include them with `add_postprocessing`. Thus, in this example, the output of the model is first binarized with `'8bitBinarize.ijm'` and then, processed with `'another_macro.ijm'`: 
 ````python
-path_second_postprocessing = "./folder/another_macro.ijm"
-dij_config.add_postprocessing(path_second_postprocessing, "postprocessing_2")
+path_second_postprocessing = './folder/another_macro.ijm'
+dij_config.add_postprocessing(path_second_postprocessing, 'postprocessing_2')
 ````
 
 **Add information about the example image.**
