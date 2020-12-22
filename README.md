@@ -26,9 +26,9 @@ $ git clone https://github.com/deepimagej/pydeepimagej.git
 $ cd pydeepimagej
 $ !pip install .
 ```
-### Reference: 
 ----
-E. Gomez-de-Mariscal, C. Garcia-Lopez-de-Haro, L. Donati, M. Unser, A. Munoz-Barrutia, D. Sage. 
+### Reference: 
+E. Gómez-de-Mariscal, C. García-López-de-Haro, L. Donati, M. Unser, A. Muñoz-Barrutia, D. Sage. 
 *DeepImageJ: A user-friendly plugin to run deep learning models in ImageJ*, bioRxiv 2019
 DOI: [https://doi.org/10.1101/799270](https://doi.org/10.1101/799270)
 - Bioengineering and Aerospace Engineering Department, Universidad Carlos III de Madrid, Spain
@@ -37,10 +37,10 @@ DOI: [https://doi.org/10.1101/799270](https://doi.org/10.1101/799270)
 Corresponding authors: mamunozb@ing.uc3m.es, daniel.sage@epfl.ch
 Copyright © 2019. Universidad Carlos III, Madrid; Spain and EPFL, Lausanne, Switzerland.
 
-License
-----
-[BSD 2-Clause License](https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/LICENSE)
+#### License
 
+[BSD 2-Clause License](https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/LICENSE)
+----
 
 ### Example of how to use it
 
