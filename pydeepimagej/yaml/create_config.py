@@ -274,10 +274,10 @@ def weights_definition(Config, YAML_dict):
                     'sha256': W.ModelHash
                     }
           if hasattr(W, 'FormatParent'):
-              WEIGHTS['parent'] = W.FormatParent
+              WEIGHTS.update({'parent': W.FormatParent})
 
           if hasattr(W, 'Authors'):
-              WEIGHTS['parent'] = W.Authors
+              WEIGHTS.update({'authors': W.Authors})
               
           if W.Framework == 'TensorFlow':
               YAML_dict['weights'].update({'tensorflow_saved_model_bundle': WEIGHTS})
