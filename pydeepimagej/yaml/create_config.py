@@ -10,12 +10,6 @@ from ruamel.yaml import YAML
 import hashlib
 from zipfile import ZipFile
 
-
-class NoAliasDumper(yaml.SafeDumper):
-# Disables generation of YAML references when using it with yaml.dump(..., Dumper=NoAliasDumper)
-    def ignore_aliases(self, data):
-        return True
-
 def FSlist(l):  # concret list into flow-style (default is block style)
     from ruamel.yaml.comments import CommentedSeq
     cs = CommentedSeq(l)
@@ -421,10 +415,10 @@ def write_config(Config, path2save):
         yaml = YAML()
         yaml.default_flow_style = False
         with open(os.path.join(path2save, 'model.yaml'), 'w', encoding='UTF-8') as f:
-            yaml.dump(YAML_dict, f, Dumper=NoAliasDumper)
+            yaml.dump(YAML_dict, f)
             print("DeepImageJ configuration file exported.")
     except:
-        print("The directory {} does not exist.".format(path2save))
+        print(colors.RED + 'The specification file model.yaml could not be created' + colors.WHITE)
 
 
 
