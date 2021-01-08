@@ -532,7 +532,9 @@ class BioimageConfig(DeepImageJConfig):
         else:
             self.allow_tiling = True
         self.Preprocessing = None
+        self.Preprocessing_files = None
         self.Postprocessing = None
+        self.Postprocessing_files = None
 
     class TestImage:
         def __add__(self, input_im, output_im, output_type, pixel_size):
