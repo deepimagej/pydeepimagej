@@ -313,11 +313,11 @@ def input_definition(Config, YAML_dict):
     else:
         min_size = np.ones(len(Config.ModelInput) - 2, dtype=np.int)
         if Config.InputOrganization0 == 'byxc' or Config.InputOrganization0 == 'byxzc':
-            step_size = np.concatenate(([0], Config.MinimumSize * min_size, [0]))
-            min_size = np.concatenate(([1], Config.MinimumSize * min_size, [Config.ModelInput[-1]]))
+            step_size = [0] + Config.MinimumSize + [0]
+            min_size = [1] + Config.MinimumSize + [Config.ModelInput[-1]]
         else:
-            step_size = np.concatenate(([0, 0], Config.MinimumSize * min_size))
-            min_size = np.concatenate(([1, Config.ModelInput[-1]], Config.MinimumSize * min_size))    
+            step_size = [0, 0] + Config.MinimumSize
+            min_size = [1, Config.ModelInput[-1]] + Config.MinimumSize   
         YAML_dict['inputs'][0]['shape'] = {'min': FSlist(min_size),
                                         'step': FSlist(step_size)}
     return YAML_dict
