@@ -50,11 +50,11 @@ def get_dimensions(tf_model, MinimumSize):
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyx'
                 Channels = np.str(input_dim[1])
-                PatchSize[0] = input_dim[0]
+                PatchSize = [input_dim[0]] + MinimumSize
             else:
                 InputOrganization0 = 'byxc'
                 Channels = np.str(input_dim[-1])
-                PatchSize[-1] = input_dim[-1]
+                PatchSize = MinimumSize + [input_dim[-1]]
         elif len(input_dim)==5:
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyxz'
@@ -139,7 +139,7 @@ def _pixel_half_receptive_field(model_class, tf_model):
     input_shape = tf_model.input_shape
     dim = np.ones(len(input_shape)-2, dtype=np.int)
     if model_class.FixedPatch == 'false':
-        min_size = 50 * np.int(model_class.MinimumSize)
+        min_size = [50 * np.int(m) for m in model_class.MinimumSize]
 
         if model_class.InputOrganization0 == 'byxc' or model_class.InputOrganization0 == 'byxzc':
             dim = np.concatenate(([1],min_size*dim, [input_shape[-1]]))
@@ -153,6 +153,7 @@ def _pixel_half_receptive_field(model_class, tf_model):
         min_size = model_class.PatchSize
 
     point_im = np.zeros_like(null_im)
+
     min_size = [int(m/2) for m in min_size]
 
     if model_class.InputOrganization0 == 'byxc':
