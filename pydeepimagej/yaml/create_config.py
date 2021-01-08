@@ -486,10 +486,11 @@ def bioimage_spec_config_deepimagej(Config, YAML_dict):
   return dij_config
 
 class BioimageConfig(DeepImageJConfig):
-    def __init__(self, tf_model):
+    def __init__(self, tf_model, MinimumSize):
         # Import all the information needed for DeepImageJ
         DeepImageJConfig.__init__(self, tf_model)
         # New fields for the Bioimage.IO configuration file
+        self.MinimumSize = MinimumSize
         self.Description = None
         self.DOI = None
         self.Documentation = None
