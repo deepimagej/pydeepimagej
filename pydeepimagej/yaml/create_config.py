@@ -50,16 +50,20 @@ def get_dimensions(tf_model, MinimumSize):
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyx'
                 Channels = np.str(input_dim[1])
+                PatchSize[0] = input_dim[0]
             else:
                 InputOrganization0 = 'byxc'
                 Channels = np.str(input_dim[-1])
+                PatchSize[-1] = input_dim[-1]
         elif len(input_dim)==5:
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyxz'
                 Channels = np.str(input_dim[1])
+                PatchSize[0] = input_dim[0]
             else:
-                InputOrganization0 = 'byxcz'
+                InputOrganization0 = 'byxzc'
                 Channels = np.str(input_dim[-1])
+                PatchSize[-1] = input_dim[-1]
         else:
             print("The input image has too many dimensions for DeepImageJ.")
 
