@@ -45,7 +45,8 @@ def get_dimensions(tf_model, MinimumSize):
     # or not
     if input_dim[2] is None:
         FixedPatch = 'false'
-        PatchSize = [MinimumSize]*(len(input_dim)-1)
+        # MinimumSize is a list with as many numbers as dimensions has the input image
+        PatchSize = MinimumSize*(len(input_dim)-1)
         if len(input_dim)==4:
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyx'
