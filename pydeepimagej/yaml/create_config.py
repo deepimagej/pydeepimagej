@@ -386,7 +386,7 @@ def write_config(Config, path2save):
                               'sha256': None
                               }
 
-    YAML_dict['documentation']: 'null' if Config.Documentation is None else Config.Documentation
+    YAML_dict['documentation']= 'null' if Config.Documentation is None else Config.Documentation
     YAML_dict['timestamp'] = Config.Timestamp
     YAML_dict['covers'] = 'null' if Config.Covers is None else Config.Covers
     YAML_dict['format_version'] = Config.Format_version
@@ -398,6 +398,7 @@ def write_config(Config, path2save):
     YAML_dict['git_repo'] = 'null' if Config.GitHub is None else Config.GitHub
     YAML_dict['packaged_by'] = 'null' if Config.PackagedBy is None else Config.PackagedBy
     YAML_dict['attachments'] = 'null' if Config.Attachements is None else Config.Attachements
+    YAML_dict['parent'] = 'null' if Config.Parent is None else Config.Parent
 
     if hasattr(Config, 'test_info'):
         YAML_dict['sample_inputs'] = ['./exampleImage.tif']        
@@ -505,6 +506,7 @@ class BioimageConfig(DeepImageJConfig):
         self.Framework = 'TensorFlow'
         self.GitHub = None
         self.Source = None
+        self.Parent = None
         # self.WeightsTorchScript = 'pytorch_script.pt'
         try:
             I, O, IA, OA, F, P = get_dimensions(tf_model, self.MinimumSize)
