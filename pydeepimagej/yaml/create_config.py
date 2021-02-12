@@ -3,7 +3,7 @@ import numpy as np
 import urllib
 import shutil
 from skimage import io
-
+from datetime import datetime
 from ..DeepImageJConfig import DeepImageJConfig
 from ruamel import yaml
 from ruamel.yaml import YAML
@@ -387,7 +387,7 @@ def write_config(Config, path2save):
                               }
 
     YAML_dict['documentation']: Config.Documentation
-    YAML_dict['date'] = Config.Date
+    YAML_dict['timestamp'] = Config.Timestamp
     YAML_dict['covers'] = Config.CoverImage
     YAML_dict['format_version'] = Config.Format_version
     YAML_dict['license'] = Config.License
@@ -491,6 +491,7 @@ class BioimageConfig(DeepImageJConfig):
         DeepImageJConfig.__init__(self, tf_model)
         # New fields for the Bioimage.IO configuration file
         self.MinimumSize = MinimumSize
+        self.Timestamp = datetime.now()
         self.Description = None
         self.DOI = None
         self.Documentation = None

@@ -10,10 +10,6 @@ authors:
 documentation:
 source:
 parent:
-test_inputs:
-test_outputs:
-sample_inputs:
-sample_outputs:
 license:
 language: Java
 framework:
@@ -21,20 +17,20 @@ git_repo:
 covers:
 tags:
   - deepimagej
+test_inputs:
+test_outputs:
+sample_inputs:
+sample_outputs:
+packaged_by:
 
 weights:
   tensorflow_saved_model_bundle:
     source:
     sha256:
     description:
-    test_input:
-    test_output:
-    
   tensorflow_js:
     source: 
-    sha256: 
-    test_input:
-    test_output:
+    sha256:
 
 inputs:
   - name: raw
@@ -51,7 +47,7 @@ outputs:
     data_range:
     halo:
     shape:
-      reference_input:
+      reference_input: raw
       scale:
       offset:
     postprocessing:
@@ -63,9 +59,9 @@ config:
     allow_tiling: true
     model_keys:
       # The tag "SERVING" is used in almost every tf model
-      model_tag: tf.saved_model.tag_constants.SERVING
+      tensorflow_model_tag: tf.saved_model.tag_constants.SERVING
       # Signature definition to call the model. Again, "SERVING" is the most general
-      signature_definition: tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
+      tensorflow_siganture_def: tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
     test_information:
       inputs:
         - name:
