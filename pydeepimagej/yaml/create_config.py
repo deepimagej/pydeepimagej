@@ -386,16 +386,18 @@ def write_config(Config, path2save):
                               'sha256': None
                               }
 
-    YAML_dict['documentation']: Config.Documentation
+    YAML_dict['documentation']: 'null' if Config.Documentation is None else Config.Documentation
     YAML_dict['timestamp'] = Config.Timestamp
-    YAML_dict['covers'] = Config.CoverImage
+    YAML_dict['covers'] = 'null' if Config.Covers is None else Config.Covers
     YAML_dict['format_version'] = Config.Format_version
-    YAML_dict['license'] = Config.License
-    YAML_dict['framework'] = Config.Framework
+    YAML_dict['license'] = 'null' if Config.License is None else Config.License
+    YAML_dict['framework'] = 'null' if Config.Framework is None else Config.Framework
     YAML_dict['language'] = 'Java'
-    YAML_dict['source'] = Config.Source
+    YAML_dict['source'] = 'null' if Config.Source is None else Config.Source
     YAML_dict['tags'] = Config.Tags
-    YAML_dict['git_repo'] = Config.GitHub
+    YAML_dict['git_repo'] = 'null' if Config.GitHub is None else Config.GitHub
+    YAML_dict['packaged_by'] = 'null' if Config.PackagedBy is None else Config.PackagedBy
+    YAML_dict['attachments'] = 'null' if Config.Attachements is None else Config.Attachements
 
     if hasattr(Config, 'test_info'):
         YAML_dict['sample_inputs'] = ['./exampleImage.tif']        
@@ -498,7 +500,7 @@ class BioimageConfig(DeepImageJConfig):
         self.Format_version = '0.3.0' # bioimage.IO
         self.License = 'BSD-3'
         self.Tags = ['deepimagej']
-        self.CoverImage = None
+        self.Covers = None
         # TODO: detect model framework (at least among pytorch and TF)?
         self.Framework = 'TensorFlow'
         self.GitHub = None
@@ -567,6 +569,25 @@ class BioimageConfig(DeepImageJConfig):
                 self.Authors = authors            
             self.Framework = format
             self.Model = model
+
+    def create_covers(self, im_list):
+        """
+        - im_list: list of images that will be used for the covers.
+        Images are assumed to have dimension order (height, width, ...).
+        In case the image has more than 2 dimensions, the first 2D image is chosen.
+
+        The images are stored as png and to visualize them online, their values
+        are interpolated to the [0,255] range and converted into uint8
+        """
+        self.CoverImages = []
+
+        for im in im_list:
+            while len(im.shape) > 2:
+                im = im[:,:,0]
+
+            im = np.interp(im, (im.min(), im.max()), (0, 255))
+            im = im.astype(np.uint8)
+            self.CoverImages.append(im)
 
     def add_weights_formats(self, model, format, parent=None, authors=None):
         if not hasattr(self, 'Weights'):
