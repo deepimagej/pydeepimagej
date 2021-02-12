@@ -300,12 +300,15 @@ def weights_definition(Config, YAML_dict):
 
     return YAML_dict
 
+
 def input_definition(Config, YAML_dict):
-  # TODO: Consider multiple outputs and inputs
+    # TODO: Consider multiple outputs and inputs
+    input_data_range = "[-inf, inf]"
     INPUTS = [{'name': 'input',
                'axes': Config.InputOrganization0,
                'data_type': 'float32',
-               'data_range': '[-inf, inf]'}]
+               'data_range': input_data_range
+               'preprocessing': 'null' if Config.BioImage_Preprocessing is None else Config.BioImage_Preprocessing}]
     YAML_dict['inputs'] = INPUTS
 
     if Config.FixedPatch == 'true':
@@ -317,20 +320,23 @@ def input_definition(Config, YAML_dict):
             min_size = [1] + Config.MinimumSize + [Config.ModelInput[-1]]
         else:
             step_size = [0, 0] + Config.MinimumSize
-            min_size = [1, Config.ModelInput[-1]] + Config.MinimumSize   
+            min_size = [1, Config.ModelInput[-1]] + Config.MinimumSize
         YAML_dict['inputs'][0]['shape'] = {'min': FSlist(min_size),
-                                        'step': FSlist(step_size)}
+                                           'step': FSlist(step_size)}
     return YAML_dict
+
 
 def output_definition(Config, YAML_dict):
     # TODO: Consider multiple outputs and inputs
+    output_data_range = "[-inf, inf]"
     OUTPUTS = [{'name': 'output',
                 'axes': Config.OutputOrganization0,
-                'data_range': '[-inf, inf]',
-                'data_type': 'float32'}]
+                'data_range': output_data_range,
+                'data_type': 'float32'
+                             'postprocessing': 'null' if Config.BioImage_Postprocessing is None else Config.BioImage_Postprocessing}]
 
     if Config.OutputOrganization0 != 'list' and Config.OutputOrganization0 != 'null':
-        #TODO: consider 3D+ outputs for the halo
+        # TODO: consider 3D+ outputs for the halo
         if Config.OutputOrganization0[-1] == 'c':
             halo = list([0] + Config.Halo + [0])
         else:
@@ -339,12 +345,12 @@ def output_definition(Config, YAML_dict):
     else:
         # Note that the output has not the dimensions of the input so this might not be conceptually correct.
         halo = [0 for v in Config.ModelInput]
-    
+
     YAML_dict['outputs'] = OUTPUTS
     YAML_dict['outputs'][0]['halo'] = FSlist(halo)
     YAML_dict['outputs'][0]['shape'] = {'reference_input': 'input',
-                                    'offset': FSlist(Config.OutputOffset),
-                                    'scale': FSlist(Config.OutputScale)}
+                                        'offset': FSlist(Config.OutputOffset),
+                                        'scale': FSlist(Config.OutputScale)}
     return YAML_dict
 
 
@@ -374,19 +380,19 @@ def write_config(Config, path2save):
     if Config.References is not None and Config.References != 'null':
         if len(Config.References) == len(Config.DOI):
             YAML_dict['cite'] = [{'doi': Config.DOI[i],
-                                'text': Config.References[i]} for i in range(len(Config.References))]
+                                  'text': Config.References[i]} for i in range(len(Config.References))]
         else:
             YAML_dict['cite'] = [{'doi': None,
-                                'text': Config.References[i]} for i in range(len(Config.References))]
+                                  'text': Config.References[i]} for i in range(len(Config.References))]
     else:
         YAML_dict['cite'] = None
 
     if hasattr(Config, 'Parent') and Config.Parent is not None:
         YAML_dict['parent'] = {'uri': Config.Parent,
-                              'sha256': None
-                              }
+                               'sha256': None
+                               }
 
-    YAML_dict['documentation']= 'null' if Config.Documentation is None else Config.Documentation
+    YAML_dict['documentation'] = 'null' if Config.Documentation is None else Config.Documentation
     YAML_dict['timestamp'] = Config.Timestamp
     YAML_dict['covers'] = 'null' if Config.Covers is None else Config.Covers
     YAML_dict['format_version'] = Config.Format_version
@@ -401,7 +407,7 @@ def write_config(Config, path2save):
     YAML_dict['parent'] = 'null' if Config.Parent is None else Config.Parent
 
     if hasattr(Config, 'test_info'):
-        YAML_dict['sample_inputs'] = ['./exampleImage.tif']        
+        YAML_dict['sample_inputs'] = ['./exampleImage.tif']
         YAML_dict['test_inputs'] = ['./exampleImage.npy']
 
         if Config.test_info.Output_type == 'image':
@@ -410,7 +416,7 @@ def write_config(Config, path2save):
         else:
             YAML_dict['sample_outputs'] = ['.resultTable.csv']
             YAML_dict['test_outputs'] = ['.resultTable.npy']
-   
+
     YAML_dict = weights_definition(Config, YAML_dict)
     YAML_dict = input_definition(Config, YAML_dict)
     YAML_dict = output_definition(Config, YAML_dict)
@@ -430,55 +436,54 @@ def write_config(Config, path2save):
         print(colors.RED + 'The specification file model.yaml could not be created' + colors.WHITE)
 
 
-
 def bioimage_spec_config_deepimagej(Config, YAML_dict):
-  if Config.Preprocessing is not None:
-      preprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Preprocessing]
-  else:
-      preprocess = None
-  if Config.Postprocessing is not None:
-      postprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Postprocessing]
-  else:
-      postprocess = None
-  if hasattr(Config, 'test_info'):
-    if Config.test_info.PixelSize is not None:
-        if len(Config.test_info.PixelSize) == 3:
-          pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
-                        'y': '{} µm'.format(Config.test_info.PixelSize[1]),
-                        'z': '{} µm'.format(Config.test_info.PixelSize[2])}
-        else:
-          pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
-                        'y': '{} µm'.format(Config.test_info.PixelSize[1]),
-                        'z': '1.0 pixel'}
+    if Config.Preprocessing is not None:
+        preprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Preprocessing]
     else:
-          pixel_size = {'x': '1.0 pixel',
-                        'y': '1.0 pixel',
-                        'z': '1.0 pixel'}  
+        preprocess = None
+    if Config.Postprocessing is not None:
+        postprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Postprocessing]
+    else:
+        postprocess = None
+    if hasattr(Config, 'test_info'):
+        if Config.test_info.PixelSize is not None:
+            if len(Config.test_info.PixelSize) == 3:
+                pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
+                              'y': '{} µm'.format(Config.test_info.PixelSize[1]),
+                              'z': '{} µm'.format(Config.test_info.PixelSize[2])}
+            else:
+                pixel_size = {'x': '{} µm'.format(Config.test_info.PixelSize[0]),
+                              'y': '{} µm'.format(Config.test_info.PixelSize[1]),
+                              'z': '1.0 pixel'}
+        else:
+            pixel_size = {'x': '1.0 pixel',
+                          'y': '1.0 pixel',
+                          'z': '1.0 pixel'}
 
-    test_information = {
-      'device': None, #TODO: check if DeepImageJ admits null
-              'inputs': {
-                  'name': 'input',
-                  'size': Config.test_info.Input_shape,
-                  'pixel_size': pixel_size
-                  },
-              'outputs': {
-                  'name': 'output',
-                  'type': Config.test_info.Output_type,
-                  'size': Config.test_info.Output_shape
-                  },
-              'memory_peak': Config.test_info.MemoryPeak,
-              'runtime': Config.test_info.Runtime
-    }  
-  else:
-    test_information = YAML_dict['config']['deepimagej']['test_information']        
+        test_information = {
+            'device': None,  # TODO: check if DeepImageJ admits null
+            'inputs': {
+                'name': 'input',
+                'size': Config.test_info.Input_shape,
+                'pixel_size': pixel_size
+            },
+            'outputs': {
+                'name': 'output',
+                'type': Config.test_info.Output_type,
+                'size': Config.test_info.Output_shape
+            },
+            'memory_peak': Config.test_info.MemoryPeak,
+            'runtime': Config.test_info.Runtime
+        }
+    else:
+        test_information = YAML_dict['config']['deepimagej']['test_information']
 
-  dij_config = {
+    dij_config = {
         'deepimagej': {
             'pyramidal_model': Config.pyramidal_model,
             'allow_tiling': Config.allow_tiling,
-            'model_keys': {'model_tag': 'tf.saved_model.tag_constants.SERVING',
-                           'signature_definition': 'tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY'},
+            'model_keys': {'tensorflow_model_tag': 'tf.saved_model.tag_constants.SERVING',
+                           'tensorflow_siganture_def': 'tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY'},
             'test_information': test_information,
             'prediction': {
                 'preprocess': preprocess,
@@ -486,19 +491,20 @@ def bioimage_spec_config_deepimagej(Config, YAML_dict):
             }
         }
     }
-  return dij_config
+    return dij_config
+
 
 class BioimageConfig(DeepImageJConfig):
     def __init__(self, tf_model, MinimumSize):
         # Import all the information needed for DeepImageJ
         DeepImageJConfig.__init__(self, tf_model)
         # New fields for the Bioimage.IO configuration file
-        self.MinimumSize = MinimumSize
         self.Timestamp = datetime.now()
+        self.MinimumSize = MinimumSize
         self.Description = None
         self.DOI = None
         self.Documentation = None
-        self.Format_version = '0.3.0' # bioimage.IO
+        self.Format_version = '0.3.0'  # bioimage.IO
         self.License = 'BSD-3'
         self.Tags = ['deepimagej']
         self.Covers = None
@@ -506,6 +512,8 @@ class BioimageConfig(DeepImageJConfig):
         self.Framework = 'TensorFlow'
         self.GitHub = None
         self.Source = None
+        self.PackagedBy = ['pydeepimagej']
+        self.Attachements = None
         self.Parent = None
         # self.WeightsTorchScript = 'pytorch_script.pt'
         try:
@@ -519,8 +527,9 @@ class BioimageConfig(DeepImageJConfig):
         except:
             print(colors.GREEN + 'pydeepimagej is not able to specify the inputs and output information.')
             print('Please, include the parameters (InputTensorDimensions, OutputTensorDimensions,')
-            print('InputOrganization0, OutputOrganization0, FixedPatch, PatchSize and Padding,  manually.' + colors.WHITE)
-        try:       
+            print(
+                'InputOrganization0, OutputOrganization0, FixedPatch, PatchSize and Padding,  manually.' + colors.WHITE)
+        try:
             # Receptive field of the network to process input
             if self.OutputOrganization0 != 'list' and self.OutputOrganization0 != 'null':
                 self.Halo = _pixel_half_receptive_field(self, tf_model)
@@ -540,6 +549,8 @@ class BioimageConfig(DeepImageJConfig):
         self.Preprocessing_files = None
         self.Postprocessing = None
         self.Postprocessing_files = None
+        self.BioImage_Preprocessing = None
+        self.BioImage_Preprocessing = None
 
     class TestImage:
         def __add__(self, input_im, output_im, output_type, pixel_size):
@@ -549,28 +560,11 @@ class BioimageConfig(DeepImageJConfig):
             self.Input_shape = ' x '.join([np.str(i) for i in input_im.shape])
             self.InputImage = input_im
             self.Output_shape = ' x '.join([np.str(i) for i in output_im.shape])
-            self.Output_type =  output_type
+            self.Output_type = output_type
             self.OutputImage = output_im
             self.MemoryPeak = None
             self.Runtime = None
             self.PixelSize = pixel_size
-
-    def add_test_info(self, input_im, output_im, pixel_size=None):
-        self.test_info = self.TestImage()
-        if self.OutputOrganization0 == 'list' or self.OutputOrganization0 == 'null':
-            output_type = 'ResultsTable'
-        else:
-            output_type = 'image'
-        self.test_info.__add__(input_im, output_im, output_type, pixel_size)
-
-    class WeightsFormat:
-        def __init__(self, model, format, parent, authors):
-            if parent is not None:
-                self.FormatParent = parent
-            if authors is not None:
-                self.Authors = authors            
-            self.Framework = format
-            self.Model = model
 
     def create_covers(self, im_list):
         """
@@ -585,11 +579,28 @@ class BioimageConfig(DeepImageJConfig):
 
         for im in im_list:
             while len(im.shape) > 2:
-                im = im[:,:,0]
+                im = im[:, :, 0]
 
             im = np.interp(im, (im.min(), im.max()), (0, 255))
             im = im.astype(np.uint8)
             self.CoverImages.append(im)
+
+    def add_test_info(self, input_im, output_im, pixel_size=None):
+        self.test_info = self.TestImage()
+        if self.OutputOrganization0 == 'list' or self.OutputOrganization0 == 'null':
+            output_type = 'ResultsTable'
+        else:
+            output_type = 'image'
+        self.test_info.__add__(input_im, output_im, output_type, pixel_size)
+
+    class WeightsFormat:
+        def __init__(self, model, format, parent, authors):
+            if parent is not None:
+                self.FormatParent = parent
+            if authors is not None:
+                self.Authors = authors
+            self.Framework = format
+            self.Model = model
 
     def add_weights_formats(self, model, format, parent=None, authors=None):
         if not hasattr(self, 'Weights'):
@@ -611,7 +622,7 @@ class BioimageConfig(DeepImageJConfig):
             if W.Framework == 'TensorFlow':
                 W.WeightsSource = 'tensorflow_saved_model_bundle.zip'
                 W.ModelHash = save_tensorflow_pb(W, W.Model, deepimagej_model_path)
-            
+
             elif W.Framework == 'KerasHDF5':
                 W.WeightsSource = 'keras_model.h5'
                 W.Model.save(os.path.join(deepimagej_model_path, W.WeightsSource))
@@ -623,7 +634,7 @@ class BioimageConfig(DeepImageJConfig):
 
             elif W.Framework == 'PyTorch-JS':
                 W.WeightsSource = 'pytorch_script.pt'
-                W.ModelHash = hash_sha256(os.path.join(deepimagej_model_path, W.WeightsSource))   
+                W.ModelHash = hash_sha256(os.path.join(deepimagej_model_path, W.WeightsSource))
 
         if hasattr(self, 'test_info'):
             # extract the information about the testing image
@@ -632,17 +643,17 @@ class BioimageConfig(DeepImageJConfig):
             # store numpy arrays for future bioimage CI
             np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
                     self.test_info.InputImage)
-            
+
             if self.test_info.Output_type == 'image':
                 io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tif'),
                           self.test_info.OutputImage)
                 # store numpy arrays for future bioimage CI
                 np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
                         self.test_info.OutputImage)
-                
+
             else:
-                columns = ['C{}'.format(c+1) for c in range(self.test_info.OutputImage.shape[-1])]
-                columns = ','.join(columns) 
+                columns = ['C{}'.format(c + 1) for c in range(self.test_info.OutputImage.shape[-1])]
+                columns = ','.join(columns)
                 np.savetxt(os.path.join(deepimagej_model_path, 'resultTable.csv'),
                            self.test_info.OutputImage, delimiter=",",
                            header=columns, comments="")
@@ -650,18 +661,24 @@ class BioimageConfig(DeepImageJConfig):
                 np.save(os.path.join(deepimagej_model_path, 'resultTable.npy'),
                         self.test_info.OutputImage)
             print("Example images stored.")
+        if hasattr(self, 'CoverImages'):
+            # extract the information about the testing image
+            for c in range(len(self.CoverImages)):
+                io.imsave(os.path.join(deepimagej_model_path, self.Covers[c]),
+                          self.CoverImages[c])
+            print("Covers stored.")
 
         # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
         write_config(self, deepimagej_model_path)
 
-        # Add preprocessing and postprocessing macros. 
+        # Add preprocessing and postprocessing macros.
         # More than one is available, but the first one is set by default.
-        
+
         if self.Preprocessing is not None:
             for i in range(len(self.Preprocessing)):
                 shutil.copy2(self.Preprocessing_files[i], os.path.join(deepimagej_model_path, self.Preprocessing[i]))
                 print("ImageJ macro {} included in the bundled model.".format(self.Preprocessing[i]))
-        
+
         if self.Postprocessing is not None:
             for i in range(len(self.Postprocessing)):
                 shutil.copy2(self.Postprocessing_files[i], os.path.join(deepimagej_model_path, self.Postprocessing[i]))
@@ -669,4 +686,5 @@ class BioimageConfig(DeepImageJConfig):
 
         # Zip the bundled model to download
         shutil.make_archive(deepimagej_model_path, 'zip', deepimagej_model_path)
-        print(colors.GREEN + 'DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.'.format(deepimagej_model_path) + colors.WHITE)
+        print(
+            colors.GREEN + 'DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.'.format(deepimagej_model_path) + colors.WHITE)
