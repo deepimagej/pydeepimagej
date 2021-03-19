@@ -47,7 +47,10 @@ from zipfile import ZipFile
 from bioimage_specifications import get_specification
 
 
-def FSlist(l):  # concret list into flow-style (default is block style)
+def FSlist(l):
+    """
+    Concrete list into flow-style (default is block style)
+    """
     from ruamel.yaml.comments import CommentedSeq
     cs = CommentedSeq(l)
     cs.fa.set_flow_style()
@@ -591,7 +594,7 @@ class BioimageConfig(DeepImageJConfig):
         self.Postprocessing = None
         self.Postprocessing_files = None
         self.BioImage_Preprocessing = None
-        self.BioImage_Preprocessing = None
+        self.BioImage_Postprocessing = None
 
     class TestImage:
         def __add__(self, input_im, output_im, output_type, pixel_size):
