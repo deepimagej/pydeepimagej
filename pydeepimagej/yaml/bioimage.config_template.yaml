@@ -22,18 +22,19 @@ test_outputs:
 sample_inputs:
 sample_outputs:
 packaged_by:
-
+attachments:
 weights:
   tensorflow_saved_model_bundle:
     source:
     sha256:
     description:
+    attachments:
   tensorflow_js:
     source: 
     sha256:
 
 inputs:
-  - name: raw
+  - name: input
     axes:
     data_type:
     data_range:
@@ -47,7 +48,7 @@ outputs:
     data_range:
     halo:
     shape:
-      reference_input: raw
+      reference_input: input
       scale:
       offset:
     postprocessing:
