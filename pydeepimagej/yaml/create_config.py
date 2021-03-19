@@ -447,7 +447,7 @@ def write_config(Config, path2save):
     YAML_dict['tags'] = Config.Tags
     YAML_dict['git_repo'] = 'null' if Config.GitHub is None else Config.GitHub
     YAML_dict['packaged_by'] = 'null' if Config.PackagedBy is None else Config.PackagedBy
-    YAML_dict['attachments'] = 'null' if Config.Attachements is None else Config.Attachements
+    YAML_dict['attachments'] = 'null' if Config.Attachments is None else Config.Attachments
     YAML_dict['parent'] = 'null' if Config.Parent is None else Config.Parent
 
     if hasattr(Config, 'test_info'):
@@ -557,7 +557,7 @@ class BioimageConfig(DeepImageJConfig):
         self.GitHub = None
         self.Source = None
         self.PackagedBy = ['pydeepimagej']
-        self.Attachements = None
+        self.Attachments = None
         self.Parent = None
         # self.WeightsTorchScript = 'pytorch_script.pt'
         try:
@@ -749,7 +749,7 @@ class BioimageConfig(DeepImageJConfig):
 
 
         # Update attachments
-        self.Attachements = {'files':  attachments_files}
+        self.Attachments = {'files':  attachments_files}
 
         # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
         write_config(self, deepimagej_model_path)
