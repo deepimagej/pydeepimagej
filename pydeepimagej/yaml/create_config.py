@@ -749,7 +749,7 @@ class BioimageConfig(DeepImageJConfig):
 
 
         # Update attachments
-        self.Attachments = {'files':  attachments_files}
+        self.Attachments = {'files':  FSlist(attachments_files)}
 
         # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
         write_config(self, deepimagej_model_path)
