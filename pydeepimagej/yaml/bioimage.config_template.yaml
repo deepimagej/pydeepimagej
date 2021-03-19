@@ -33,7 +33,7 @@ weights:
     sha256:
 
 inputs:
-  - name: raw
+  - name: input
     axes:
     data_type:
     data_range:
@@ -41,13 +41,13 @@ inputs:
     preprocessing:
 
 outputs:
-  - name: 
+  - name: output
     axes: 
     data_type: 
     data_range:
     halo:
     shape:
-      reference_input: raw
+      reference_input: input
       scale:
       offset:
     postprocessing:
