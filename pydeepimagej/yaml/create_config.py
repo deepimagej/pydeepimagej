@@ -350,7 +350,6 @@ def input_definition(Config, YAML_dict):
                   'data_type': 'float32',
                   'data_range': input_data_range}
     if Config.BioImage_Preprocessing is not None:
-        print(Config.BioImage_Preprocessing)
         input_dict['preprocessing'] = Config.BioImage_Preprocessing
 
     YAML_dict['inputs'] = [input_dict]
@@ -621,7 +620,6 @@ class BioimageConfig(DeepImageJConfig):
         are interpolated to the [0,255] range and converted into uint8
         """
         self.CoverImages = []
-
         for im in im_list:
             while len(im.shape) > 2:
                 im = im[0]
@@ -641,7 +639,6 @@ class BioimageConfig(DeepImageJConfig):
     def add_bioimageio_spec(self, processing, name, **kwargs):
 
         specs = get_specification(name, **kwargs)
-        print(specs)
         if processing == 'pre-processing':
             self.BioImage_Preprocessing = [specs]
         elif processing == 'post-processing':
