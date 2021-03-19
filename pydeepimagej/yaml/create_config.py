@@ -44,7 +44,7 @@ from ruamel import yaml
 from ruamel.yaml import YAML
 import hashlib
 from zipfile import ZipFile
-from bioimage_specifications import get_specification
+# from bioimage_specifications import get_specification
 
 
 def FSlist(l):
