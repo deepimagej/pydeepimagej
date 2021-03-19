@@ -623,7 +623,6 @@ class BioimageConfig(DeepImageJConfig):
         for im in im_list:
             while len(im.shape) > 2:
                 im = im[0]
-
             im = np.interp(im, (im.min(), im.max()), (0, 255))
             im = im.astype(np.uint8)
             self.CoverImages.append(im)
@@ -750,7 +749,7 @@ class BioimageConfig(DeepImageJConfig):
 
 
         # Update attachments
-        self.attachments = {'files':  attachments_files}
+        self.Attachements = {'files':  attachments_files}
 
         # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
         write_config(self, deepimagej_model_path)
