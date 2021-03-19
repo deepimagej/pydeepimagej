@@ -42,7 +42,7 @@ inputs:
     preprocessing:
 
 outputs:
-  - name: 
+  - name: output
     axes: 
     data_type: 
     data_range:
