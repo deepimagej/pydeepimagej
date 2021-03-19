@@ -32,7 +32,6 @@ Corresponding authors: mamunozb@ing.uc3m.es, daniel.sage@epfl.ch
 Copyright 2019. Universidad Carlos III, Madrid, Spain and EPFL, Lausanne, Switzerland.
 
 """
-
 # scale_range normalize the tensor with percentile normalization
     # kwargs
     # mode can be one of per_sample (percentiles are computed for each sample individually), per_dataset (percentiles are computed for the entire dataset). For a fixed scaling use scale linear.
@@ -93,14 +92,13 @@ def clip(threshold=0.5):
     }
     return dict_binarize
 
-def binarize(min_value=0, max_value=1):
+def binarize(threshold=0.5):
     """
     binarize the tensor with a fixed threshold, values above the threshold will be set to one, values below the threshold to zero
     """
-    dict_binarize = {'scale_range': {
+    dict_binarize = {'binarize': {
         'kwargs': {
-            'min': min_value,
-            'max': max_value
+            'threshold': threshold
         }}
     }
     return dict_binarize
@@ -140,22 +138,22 @@ def zero_mean_unit_variance(mode='per_sample', axes='xyzc', mean=0, std=1, eps=1
     }
     return dict_zero_mean_unit_variance
 
-def get_specification(process_name, *kwargs):
+def get_specification(process_name, **kwargs):
     '''
     selects the corresponding specification for the processing chosen
     '''
     if process_name == 'scale_range' or process_name == 'percentile':
-        return scale_range(*kwargs)
+        return scale_range(**kwargs)
     elif process_name == 'clip':
-        return clip(*kwargs)
+        return clip(**kwargs)
     elif process_name == 'binarize':
-        return binarize(*kwargs)
+        return binarize(**kwargs)
     elif process_name == 'scale_linear':
-        return scale_linear(*kwargs)
+        return scale_linear(**kwargs)
     elif process_name == 'sigmoid':
         return sigmoid()
     elif process_name == 'zero_mean_unit_variance':
-        return zero_mean_unit_variance(*kwargs)
+        return zero_mean_unit_variance(**kwargs)
     else:
         print('the process {} does not exist in the specifications of the Bioimae Model Zoo.'.format(process_name))
         return None

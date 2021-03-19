@@ -44,8 +44,8 @@ from ruamel import yaml
 from ruamel.yaml import YAML
 import hashlib
 from zipfile import ZipFile
-# from bioimage_specifications import get_specification
-
+# import get_specification
+from .bioimage_specifications import get_specification
 
 def FSlist(l):
     """
@@ -350,6 +350,7 @@ def input_definition(Config, YAML_dict):
                   'data_type': 'float32',
                   'data_range': input_data_range}
     if Config.BioImage_Preprocessing is not None:
+        print(Config.BioImage_Preprocessing)
         input_dict['preprocessing'] = Config.BioImage_Preprocessing
 
     YAML_dict['inputs'] = [input_dict]
@@ -377,7 +378,7 @@ def output_definition(Config, YAML_dict):
                    'data_range': output_data_range,
                    'data_type': 'float32'}
     if Config.BioImage_Postprocessing is not None:
-        output_dict['postprocessing']: Config.BioImage_Postprocessing
+        output_dict['postprocessing']= Config.BioImage_Postprocessing
 
     if Config.OutputOrganization0 != 'list' and Config.OutputOrganization0 != 'null':
         # TODO: consider 3D+ outputs for the halo
@@ -637,6 +638,17 @@ class BioimageConfig(DeepImageJConfig):
             output_type = 'image'
         self.test_info.__add__(input_im, output_im, output_type, pixel_size)
 
+    def add_bioimageio_spec(self, processing, name, **kwargs):
+
+        specs = get_specification(name, **kwargs)
+        print(specs)
+        if processing == 'pre-processing':
+            self.BioImage_Preprocessing = [specs]
+        elif processing == 'post-processing':
+            self.BioImage_Postprocessing = [specs]
+        else:
+          print("add_bioimage_spec only accepts 'pre-processing' or 'post_processing' input process name.")
+
     class WeightsFormat:
         def __init__(self, model, format, parent, authors):
             if parent is not None:
@@ -680,6 +692,9 @@ class BioimageConfig(DeepImageJConfig):
                 W.WeightsSource = 'pytorch_script.pt'
                 W.ModelHash = hash_sha256(os.path.join(deepimagej_model_path, W.WeightsSource))
 
+        # record which files should be attached for the Bioimage Model Zoo packager
+        attachments_files = []
+
         if hasattr(self, 'test_info'):
             # extract the information about the testing image
             io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tif'),
@@ -688,12 +703,16 @@ class BioimageConfig(DeepImageJConfig):
             np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
                     self.test_info.InputImage)
 
+            attachments_files.append("./exampleImage.tif")
+
             if self.test_info.Output_type == 'image':
                 io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tif'),
                           self.test_info.OutputImage)
                 # store numpy arrays for future bioimage CI
                 np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
                         self.test_info.OutputImage)
+
+                attachments_files.append("./resultImage.tif")
 
             else:
                 columns = ['C{}'.format(c + 1) for c in range(self.test_info.OutputImage.shape[-1])]
@@ -704,6 +723,9 @@ class BioimageConfig(DeepImageJConfig):
                 # store numpy arrays for future bioimage CI
                 np.save(os.path.join(deepimagej_model_path, 'resultTable.npy'),
                         self.test_info.OutputImage)
+
+                attachments_files.append("./resultTable.csv")
+
             print("Example images stored.")
         if hasattr(self, 'CoverImages'):
             # extract the information about the testing image
@@ -711,9 +733,6 @@ class BioimageConfig(DeepImageJConfig):
                 io.imsave(os.path.join(deepimagej_model_path, self.Covers[c]),
                           self.CoverImages[c])
             print("Covers stored.")
-
-        # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
-        write_config(self, deepimagej_model_path)
 
         # Add preprocessing and postprocessing macros.
         # More than one is available, but the first one is set by default.
@@ -723,10 +742,22 @@ class BioimageConfig(DeepImageJConfig):
                 shutil.copy2(self.Preprocessing_files[i], os.path.join(deepimagej_model_path, self.Preprocessing[i]))
                 print("ImageJ macro {} included in the bundled model.".format(self.Preprocessing[i]))
 
+                attachments_files.append("./{}".format(self.Preprocessing[i]))
+
         if self.Postprocessing is not None:
             for i in range(len(self.Postprocessing)):
                 shutil.copy2(self.Postprocessing_files[i], os.path.join(deepimagej_model_path, self.Postprocessing[i]))
                 print("ImageJ macro {} included in the bundled model.".format(self.Postprocessing[i]))
+
+                attachments_files.append("./{}".format(self.Postprocessing[i]))
+
+
+        # Update attachments
+        self.attachments = {'files':  attachments_files}
+
+        # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
+        write_config(self, deepimagej_model_path)
+
 
         # Zip the bundled model to download
         shutil.make_archive(deepimagej_model_path, 'zip', deepimagej_model_path)
