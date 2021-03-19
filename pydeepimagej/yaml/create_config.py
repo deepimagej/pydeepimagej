@@ -33,7 +33,6 @@ Copyright 2019. Universidad Carlos III, Madrid, Spain and EPFL, Lausanne, Switze
 
 """
 
-
 import os
 import numpy as np
 import urllib
@@ -45,6 +44,8 @@ from ruamel import yaml
 from ruamel.yaml import YAML
 import hashlib
 from zipfile import ZipFile
+from bioimage_specifications import get_specification
+
 
 def FSlist(l):  # concret list into flow-style (default is block style)
     from ruamel.yaml.comments import CommentedSeq
@@ -52,20 +53,21 @@ def FSlist(l):  # concret list into flow-style (default is block style)
     cs.fa.set_flow_style()
     return cs
 
-class colors: 
+
+class colors:
     WHITE = '\033[0m'
     RED = '\033[31m'
     GREEN = '\033[32m'
-    
+
+
 def hash_sha256(filename):
     """
     filename: full path together with the name of the file for which the hashcode is calculated.
     """
-    with open(filename,"rb") as f:
-        bytes = f.read() # read entire file as bytes
+    with open(filename, "rb") as f:
+        bytes = f.read()  # read entire file as bytes
         sha256 = hashlib.sha256(bytes).hexdigest();
     return sha256
-
 
 
 def get_dimensions(tf_model, MinimumSize):
@@ -82,8 +84,8 @@ def get_dimensions(tf_model, MinimumSize):
     if input_dim[2] is None:
         FixedPatch = 'false'
         # MinimumSize is a list with as many numbers as dimensions has the input image
-        PatchSize = MinimumSize*(len(input_dim)-1)
-        if len(input_dim)==4:
+        PatchSize = MinimumSize * (len(input_dim) - 1)
+        if len(input_dim) == 4:
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyx'
                 Channels = np.str(input_dim[1])
@@ -92,7 +94,7 @@ def get_dimensions(tf_model, MinimumSize):
                 InputOrganization0 = 'byxc'
                 Channels = np.str(input_dim[-1])
                 PatchSize = MinimumSize + [input_dim[-1]]
-        elif len(input_dim)==5:
+        elif len(input_dim) == 5:
             if input_dim[-1] is None:
                 InputOrganization0 = 'bcyxz'
                 Channels = np.str(input_dim[1])
@@ -105,17 +107,17 @@ def get_dimensions(tf_model, MinimumSize):
             print("The input image has too many dimensions for DeepImageJ.")
 
         if len(output_dim) < 3:
-          # Output is a list
-            OutputOrganization0 = 'null' 
+            # Output is a list
+            OutputOrganization0 = 'null'
         elif len(output_dim) == 3:
-          # This case might be completely unusual
-            OutputOrganization0 = 'byx' 
-        elif len(output_dim)==4:
+            # This case might be completely unusual
+            OutputOrganization0 = 'byx'
+        elif len(output_dim) == 4:
             if output_dim[-1] is None:
                 OutputOrganization0 = 'bcyx'
             else:
                 OutputOrganization0 = 'byxc'
-        elif len(output_dim)==5:
+        elif len(output_dim) == 5:
             if output_dim[-1] is None:
                 OutputOrganization0 = 'bcyxz'
             else:
@@ -145,17 +147,17 @@ def get_dimensions(tf_model, MinimumSize):
             print("The input image has too many dimensions for DeepImageJ.")
 
         if len(output_dim) < 3:
-          # Output is a list
-            OutputOrganization0 = 'null' 
+            # Output is a list
+            OutputOrganization0 = 'null'
         elif len(output_dim) == 3:
-          # This case might be completely unusual
-            OutputOrganization0 = 'byx' 
-        elif len(output_dim)==4:
+            # This case might be completely unusual
+            OutputOrganization0 = 'byx'
+        elif len(output_dim) == 4:
             if output_dim[-1] < output_dim[-2] and output_dim[-1] < output_dim[-3]:
                 OutputOrganization0 = 'byxc'
             else:
                 OutputOrganization0 = 'bcyx'
-        elif len(output_dim)==5:
+        elif len(output_dim) == 5:
             if output_dim[-1] < output_dim[-2] and output_dim[-1] < output_dim[-3]:
                 OutputOrganization0 = 'byxzc'
             else:
@@ -164,8 +166,9 @@ def get_dimensions(tf_model, MinimumSize):
             print("The output has too many dimensions for DeepImageJ.")
     input_dim = [1 if v is None else v for v in input_dim]
     output_dim = [1 if v is None else v for v in output_dim]
-    
+
     return input_dim, output_dim, InputOrganization0, OutputOrganization0, FixedPatch, PatchSize
+
 
 def _pixel_half_receptive_field(model_class, tf_model):
     """
@@ -174,12 +177,12 @@ def _pixel_half_receptive_field(model_class, tf_model):
     It only works for TensorFlow models
     """
     input_shape = tf_model.input_shape
-    dim = np.ones(len(input_shape)-2, dtype=np.int)
+    dim = np.ones(len(input_shape) - 2, dtype=np.int)
     if model_class.FixedPatch == 'false':
         min_size = [50 * np.int(m) for m in model_class.MinimumSize]
 
         if model_class.InputOrganization0 == 'byxc' or model_class.InputOrganization0 == 'byxzc':
-            dim = np.concatenate(([1],min_size*dim, [input_shape[-1]]))
+            dim = np.concatenate(([1], min_size * dim, [input_shape[-1]]))
             null_im = np.zeros(dim, dtype=np.float32)
         else:
             dim = np.concatenate(([1, input_shape[-1]], min_size * dim))
@@ -191,12 +194,12 @@ def _pixel_half_receptive_field(model_class, tf_model):
 
     point_im = np.zeros_like(null_im)
 
-    min_size = [int(m/2) for m in min_size]
+    min_size = [int(m / 2) for m in min_size]
 
     if model_class.InputOrganization0 == 'byxc':
         point_im[0, min_size[0], min_size[1]] = 1
     elif model_class.InputOrganization0 == 'byxzc':
-        point_im[0,  min_size[0], min_size[1], min_size[2]] = 1
+        point_im[0, min_size[0], min_size[1], min_size[2]] = 1
     elif model_class.InputOrganization0 == 'bcyx':
         point_im[0, :, min_size[0], min_size[1]] = 1
     else:
@@ -217,9 +220,10 @@ def _pixel_half_receptive_field(model_class, tf_model):
     halo = np.min(ind[1])
     halo = min_size - halo + 1
 
-    halo = [np.max((0,h)) for h in halo]
+    halo = [np.max((0, h)) for h in halo]
 
     return halo
+
 
 def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
     # Check whether the folder to save the DeepImageJ bundled model exists.
@@ -254,11 +258,10 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
         signature_def_map = {saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: signature}
 
         builder.add_meta_graph_and_variables(get_session(),
-                                              [saved_model.tag_constants.SERVING],
-                                              signature_def_map=signature_def_map)
+                                             [saved_model.tag_constants.SERVING],
+                                             signature_def_map=signature_def_map)
         builder.save()
         print("TensorFlow model exported to {0}".format(deepimagej_model_path))
-
 
         ziped_model = os.path.join(deepimagej_model_path, model_class.WeightsSource)
 
@@ -268,13 +271,13 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
         # zipObj.write(os.path.join(deepimagej_model_path, 'saved_model.pb'), os.path.basename(os.path.join(deepimagej_model_path, 'saved_model.pb')))
         for folderNames, subfolder, filenames in os.walk(os.path.join(deepimagej_model_path)):
             for filename in filenames:
-              # create complete filepath of file in directory
-              filePaths.append(os.path.join(folderNames, filename))
+                # create complete filepath of file in directory
+                filePaths.append(os.path.join(folderNames, filename))
 
-        zipObj = ZipFile(ziped_model, 'w')        
+        zipObj = ZipFile(ziped_model, 'w')
         for f in filePaths:
             # Add file to zip
-            zipObj.write(f, os.path.relpath(f,deepimagej_model_path))
+            zipObj.write(f, os.path.relpath(f, deepimagej_model_path))
         # close the Zip File
         zipObj.close()
 
@@ -283,9 +286,9 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
             os.remove(os.path.join(deepimagej_model_path, 'saved_model.pb'))
         except:
             print("TensorFlow bundled model was not removed after compression")
-        
-        with open(ziped_model,"rb") as f:
-            bytes = f.read() # read entire file as bytes
+
+        with open(ziped_model, "rb") as f:
+            bytes = f.read()  # read entire file as bytes
             readable_hash = hashlib.sha256(bytes).hexdigest();
         print("TensorFlow model exported to {0}".format(deepimagej_model_path))
 
@@ -308,31 +311,30 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
 
 
 def weights_definition(Config, YAML_dict):
-
     YAML_dict['weights'] = {}
 
     for W in Config.Weights:
         # TODO: Consider multiple outputs and inputs
-          WEIGHTS = {'source': './' + W.WeightsSource,
-                    'sha256': W.ModelHash
-                    }
-          if hasattr(W, 'FormatParent'):
-              WEIGHTS.update({'parent': W.FormatParent})
+        WEIGHTS = {'source': './' + W.WeightsSource,
+                   'sha256': W.ModelHash
+                   }
+        if hasattr(W, 'FormatParent'):
+            WEIGHTS.update({'parent': W.FormatParent})
 
-          if hasattr(W, 'Authors'):
-              WEIGHTS.update({'authors': W.Authors})
-              
-          if W.Framework == 'TensorFlow':
-              YAML_dict['weights'].update({'tensorflow_saved_model_bundle': WEIGHTS})
+        if hasattr(W, 'Authors'):
+            WEIGHTS.update({'authors': W.Authors})
 
-          elif W.Framework == 'KerasHDF5':
-              YAML_dict['weights'].update({'keras_hdf5': WEIGHTS})
+        if W.Framework == 'TensorFlow':
+            YAML_dict['weights'].update({'tensorflow_saved_model_bundle': WEIGHTS})
 
-          elif W.Framework == 'TensoFlow-JS':
-              YAML_dict['weights'].update({'tensorflow_js': WEIGHTS})
+        elif W.Framework == 'KerasHDF5':
+            YAML_dict['weights'].update({'keras_hdf5': WEIGHTS})
 
-          elif W.Framework == 'PyTorch-JS':
-              YAML_dict['weights'].update({'pytorch_script': WEIGHTS})
+        elif W.Framework == 'TensoFlow-JS':
+            YAML_dict['weights'].update({'tensorflow_js': WEIGHTS})
+
+        elif W.Framework == 'PyTorch-JS':
+            YAML_dict['weights'].update({'pytorch_script': WEIGHTS})
 
     return YAML_dict
 
@@ -340,17 +342,19 @@ def weights_definition(Config, YAML_dict):
 def input_definition(Config, YAML_dict):
     # TODO: Consider multiple outputs and inputs
     input_data_range = "[-inf, inf]"
-    INPUTS = [{'name': 'input',
-               'axes': Config.InputOrganization0,
-               'data_type': 'float32',
-               'data_range': input_data_range
-               'preprocessing': 'null' if Config.BioImage_Preprocessing is None else Config.BioImage_Preprocessing}]
-    YAML_dict['inputs'] = INPUTS
+    input_dict = {'name': 'input',
+                  'axes': Config.InputOrganization0,
+                  'data_type': 'float32',
+                  'data_range': input_data_range}
+    if Config.BioImage_Preprocessing is not None:
+        input_dict['preprocessing'] = Config.BioImage_Preprocessing
+
+    YAML_dict['inputs'] = [input_dict]
 
     if Config.FixedPatch == 'true':
         YAML_dict['inputs'][0]['shape'] = FSlist(Config.InputTensorDimensions)
     else:
-        min_size = np.ones(len(Config.ModelInput) - 2, dtype=np.int)
+        # min_size = np.ones(len(Config.ModelInput) - 2, dtype=np.int)
         if Config.InputOrganization0 == 'byxc' or Config.InputOrganization0 == 'byxzc':
             step_size = [0] + Config.MinimumSize + [0]
             min_size = [1] + Config.MinimumSize + [Config.ModelInput[-1]]
@@ -365,11 +369,12 @@ def input_definition(Config, YAML_dict):
 def output_definition(Config, YAML_dict):
     # TODO: Consider multiple outputs and inputs
     output_data_range = "[-inf, inf]"
-    OUTPUTS = [{'name': 'output',
-                'axes': Config.OutputOrganization0,
-                'data_range': output_data_range,
-                'data_type': 'float32'
-                             'postprocessing': 'null' if Config.BioImage_Postprocessing is None else Config.BioImage_Postprocessing}]
+    output_dict = {'name': 'output',
+                   'axes': Config.OutputOrganization0,
+                   'data_range': output_data_range,
+                   'data_type': 'float32'}
+    if Config.BioImage_Postprocessing is not None:
+        output_dict['postprocessing']: Config.BioImage_Postprocessing
 
     if Config.OutputOrganization0 != 'list' and Config.OutputOrganization0 != 'null':
         # TODO: consider 3D+ outputs for the halo
@@ -382,7 +387,7 @@ def output_definition(Config, YAML_dict):
         # Note that the output has not the dimensions of the input so this might not be conceptually correct.
         halo = [0 for v in Config.ModelInput]
 
-    YAML_dict['outputs'] = OUTPUTS
+    YAML_dict['outputs'] = [output_dict]
     YAML_dict['outputs'][0]['halo'] = FSlist(halo)
     YAML_dict['outputs'][0]['shape'] = {'reference_input': 'input',
                                         'offset': FSlist(Config.OutputOffset),
@@ -443,15 +448,15 @@ def write_config(Config, path2save):
     YAML_dict['parent'] = 'null' if Config.Parent is None else Config.Parent
 
     if hasattr(Config, 'test_info'):
-        YAML_dict['sample_inputs'] = ['./exampleImage.tif']
-        YAML_dict['test_inputs'] = ['./exampleImage.npy']
+        YAML_dict['sample_inputs'] = ['./exampleImage.npy']
+        YAML_dict['test_inputs'] = ['./exampleImage.tif']
 
         if Config.test_info.Output_type == 'image':
-            YAML_dict['sample_outputs'] = ['.resultImage.tif']
-            YAML_dict['test_outputs'] = ['.resultImage.npy']
+            YAML_dict['sample_outputs'] = ['.resultImage.npy']
+            YAML_dict['test_outputs'] = ['.resultImage.tif']
         else:
-            YAML_dict['sample_outputs'] = ['.resultTable.csv']
-            YAML_dict['test_outputs'] = ['.resultTable.npy']
+            YAML_dict['sample_outputs'] = ['.resultTable.npy']
+            YAML_dict['test_outputs'] = ['.resultTable.csv']
 
     YAML_dict = weights_definition(Config, YAML_dict)
     YAML_dict = input_definition(Config, YAML_dict)
@@ -723,4 +728,5 @@ class BioimageConfig(DeepImageJConfig):
         # Zip the bundled model to download
         shutil.make_archive(deepimagej_model_path, 'zip', deepimagej_model_path)
         print(
-            colors.GREEN + 'DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.'.format(deepimagej_model_path) + colors.WHITE)
+            colors.GREEN + 'DeepImageJ model was successfully exported as {0}.zip. You can download and start using it in DeepImageJ.'.format(
+                deepimagej_model_path) + colors.WHITE)

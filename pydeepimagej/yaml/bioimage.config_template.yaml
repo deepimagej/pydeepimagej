@@ -52,7 +52,8 @@ outputs:
       scale:
       offset:
     postprocessing:
-
+run_mode:
+  name: deepimagej
 config:
 # custom config for DeepImageJ, see https://github.com/bioimage-io/configuration/issues/23
   deepimagej:

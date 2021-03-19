@@ -146,16 +146,16 @@ def get_specification(process_name, *kwargs):
     '''
     if process_name == 'scale_range' or process_name == 'percentile':
         return scale_range(*kwargs)
-    elif process_name == '':
+    elif process_name == 'clip':
         return clip(*kwargs)
-    elif process_name == '':
+    elif process_name == 'binarize':
         return binarize(*kwargs)
-    elif process_name == '':
+    elif process_name == 'scale_linear':
         return scale_linear(*kwargs)
-    elif process_name == '':
+    elif process_name == 'sigmoid':
         return sigmoid()
-    elif process_name == '':
+    elif process_name == 'zero_mean_unit_variance':
         return zero_mean_unit_variance(*kwargs)
     else:
-        print('the process {} does not exist in the specifications of the Bioimae Model Zoo.'.format(process_name)
+        print('the process {} does not exist in the specifications of the Bioimae Model Zoo.'.format(process_name))
         return None
