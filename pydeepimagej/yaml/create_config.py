@@ -614,7 +614,7 @@ class BioimageConfig(DeepImageJConfig):
     def create_covers(self, im_list):
         """
         - im_list: list of images that will be used for the covers.
-        Images are assumed to have dimension order (height, width, ...).
+        Images are assumed to have dimension order (Z/time/channels, height, width, ...).
         In case the image has more than 2 dimensions, the first 2D image is chosen.
 
         The images are stored as png and to visualize them online, their values
@@ -624,7 +624,7 @@ class BioimageConfig(DeepImageJConfig):
 
         for im in im_list:
             while len(im.shape) > 2:
-                im = im[:, :, 0]
+                im = im[0]
 
             im = np.interp(im, (im.min(), im.max()), (0, 255))
             im = im.astype(np.uint8)
