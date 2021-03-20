@@ -639,9 +639,16 @@ class BioimageConfig(DeepImageJConfig):
 
         specs = get_specification(name, **kwargs)
         if processing == 'pre-processing':
-            self.BioImage_Preprocessing = [specs]
+            if self.BioImage_Preprocessing is not None:
+                self.BioImage_Preprocessing.append(specs)
+            else:
+                self.BioImage_Preprocessing = [specs]
         elif processing == 'post-processing':
-            self.BioImage_Postprocessing = [specs]
+          
+            if self.BioImage_Postprocessing is not None:
+                self.BioImage_Postprocessing.append(specs)
+            else:
+                self.BioImage_Postprocessing = [specs]
         else:
           print("add_bioimage_spec only accepts 'pre-processing' or 'post_processing' input process name.")
 
