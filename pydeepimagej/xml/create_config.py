@@ -280,7 +280,7 @@ class xmlConfig(DeepImageJConfig):
             tf_version = 2
             """TODO: change it once TF 2.3.0 is available in JAVA"""
             from tensorflow.keras.models import clone_model
-            _weights = tf_model.get_weights(tf_model)
+            _weights = tf_model.get_weights()
             with tf.Graph().as_default():
                 # clone model in new graph and set weights
                 _model = clone_model(tf_model)
