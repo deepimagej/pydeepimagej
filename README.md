@@ -88,7 +88,7 @@ dij_config.add_bioimageio_spec('post-processing', 'binarize',
 The `BioImageModelZooConfig` class will include as many steps as times the previous functions are called. For example:
 ```python
 # Make sure that there's no pre-processing specified.
-dij_config.BioImage_Postprocessing=None 
+dij_config.BioImage_Preprocessing=None
 dij_config.add_bioimageio_spec('pre-processing', 'scale_range',
                                mode='per_sample', axes='xyzc',
                                min_percentile=min_percentile, 
@@ -96,9 +96,17 @@ dij_config.add_bioimageio_spec('pre-processing', 'scale_range',
 dij_config.add_bioimageio_spec('pre-processing', 'scale_linear',
                                gain=255, offset=0, axes='xy')
 ```
+```
+dij_config.BioImage_Preprocessing:
+[{'scale_range': {'kwargs': {'axes': 'xyzc',
+  'max_percentile': 100,
+  'min_percentile': 0,
+  'mode': 'per_sample'}}},
+ {'scale_range': {'kwargs': {'axes': 'xy', 'gain': 255, 'offset': 0}}}]
+```
 The same applies for the post-processing:
 ```python
-dij_config.BioImage_Preprocessing=None
+dij_config.BioImage_Postprocessing=None 
 dij_config.add_bioimageio_spec('post-processing', 'scale_range',
                                mode='per_sample', axes='xyzc', 
                                min_percentile=0, max_percentile=100)
@@ -109,7 +117,15 @@ dij_config.add_bioimageio_spec('post-processing', 'scale_linear',
 dij_config.add_bioimageio_spec('post-processing', 'binarize',
                                threshold=threshold)
 ```
-
+```
+dij_config.BioImage_Postprocessing:
+[{'scale_range': {'kwargs': {'axes': 'xyzc',
+  'max_percentile': 100,
+  'min_percentile': 0,
+  'mode': 'per_sample'}}},
+ {'scale_range': {'kwargs': {'axes': 'xy', 'gain': 255, 'offset': 0}}},
+ {'binarize': {'kwargs': {'threshold': 0.5}}}]
+```
 #### Prepare an ImageJ pre/post-processing macro.
 You may need to preprocess the input image before the inference. Some ImageJ macro routines can be downloaded from [here](https://github.com/deepimagej/imagej-macros/) and included in the model specifications. Note that ImageJ macros are text files so it is easy to modify them inside a Python script ([see an example](https://github.com/deepimagej/pydeepimagej/blob/master/README.md#additional-commands)). To add any ImageJ macro code we need to run `add_preprocessing(local_path_to_the_macro_file, 'name_to_store_the_macro_in_the_bundled_model')`:
 ````python

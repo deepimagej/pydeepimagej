@@ -6,13 +6,13 @@ with open("README.md", "r") as fh:
 
 setup(
     name='pydeepimagej',
-    packages=find_packages(),
-    version='2.0.5',
+    packages=find_packages(include=['pydeepimagej', 'pydeepimagej.*']),
+    version='2.1.0',
     license='BSD 2-Clause License',
     description='Python package to export TensorFlow models as DeepImageJ bundled models',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    author="C. García-López-de-Haro, E. Gómez-de-Mariscal, L. Donati, M. Unser, A. Muñoz-Barrutia, D. Sage.",
+    author="C. Garcia-Lopez-de-Haro, E. Gomez-de-Mariscal, L. Donati, M. Unser, A. Munoz-Barrutia, D. Sage.",
     author_email='esgomezm@pa.uc3m.com, daniel.sage@epfl.ch, mamunozb@ing.uc3m.es',
     url='https://deepimagej.github.io/deepimagej/',
     download_url='https://github.com/deepimagej/pydeepimagej/archive/v1.0.0.tar.gz',
@@ -22,7 +22,6 @@ setup(
         'numpy',
         'scikit-image==0.17.2',
         'ruamel.yaml',
-        'zipfile36',
         'datetime'
       ],
     classifiers=[

@@ -1,6 +1,4 @@
 numpy
 scikit-image==0.17.2
-pyyaml==5.1
 datetime
-zipfile36
 ruamel.yaml
