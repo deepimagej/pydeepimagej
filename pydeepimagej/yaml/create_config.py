@@ -45,7 +45,7 @@ from ruamel.yaml import YAML
 import hashlib
 from zipfile import ZipFile
 # import get_specification
-from .bioimage_specifications import get_specification
+from .bioimageio_specifications import get_specification
 
 def FSlist(l):
     """
@@ -409,14 +409,14 @@ def write_config(Config, path2save):
     information about the model and the example image.
     """
     urllib.request.urlretrieve(
-        "https://raw.githubusercontent.com/deepimagej/pydeepimagej/bioimage-yaml/pydeepimagej/yaml/bioimage.config_template.yaml",
-        "bioimage.config_template.yaml")
+        "https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/pydeepimagej/yaml/bioimage.io.config_template.yaml",
+        "bioimage.io.config_template.yaml")
     try:
         yaml = YAML()
-        with open('bioimage.config_template.yaml') as f:
+        with open('bioimage.io.config_template.yaml') as f:
             YAML_dict = yaml.load(f)
     except:
-        print("config_template.xml not found.")
+        print("bioimage.io.config_template.yaml not found.")
 
     YAML_dict['name'] = Config.Name
     YAML_dict['description'] = Config.Description
@@ -465,7 +465,7 @@ def write_config(Config, path2save):
     YAML_dict = input_definition(Config, YAML_dict)
     YAML_dict = output_definition(Config, YAML_dict)
 
-    dij_config = bioimage_spec_config_deepimagej(Config, YAML_dict)
+    dij_config = bioimageio_spec_config_deepimagej(Config, YAML_dict)
     YAML_dict['config'] = dij_config
 
     YAML_dict.default_flow_style = False
@@ -480,7 +480,7 @@ def write_config(Config, path2save):
         print(colors.RED + 'The specification file model.yaml could not be created' + colors.WHITE)
 
 
-def bioimage_spec_config_deepimagej(Config, YAML_dict):
+def bioimageio_spec_config_deepimagej(Config, YAML_dict):
     if Config.Preprocessing is not None:
         preprocess = [{'spec': 'ij.IJ::runMacroFile', 'kwargs': '{}'.format(step)} for step in Config.Preprocessing]
     else:
@@ -538,17 +538,17 @@ def bioimage_spec_config_deepimagej(Config, YAML_dict):
     return dij_config
 
 
-class BioimageConfig(DeepImageJConfig):
+class BioImageModelZooConfig(DeepImageJConfig):
     def __init__(self, tf_model, MinimumSize):
         # Import all the information needed for DeepImageJ
         DeepImageJConfig.__init__(self, tf_model)
-        # New fields for the Bioimage.IO configuration file
+        # New fields for the bioimage.io configuration file
         self.Timestamp = datetime.now()
         self.MinimumSize = MinimumSize
         self.Description = None
         self.DOI = None
         self.Documentation = None
-        self.Format_version = '0.3.0'  # bioimage.IO
+        self.Format_version = '0.3.0'  # bioimage.io
         self.License = 'BSD-3'
         self.Tags = ['deepimagej']
         self.Covers = None
@@ -699,14 +699,14 @@ class BioimageConfig(DeepImageJConfig):
                 W.WeightsSource = 'pytorch_script.pt'
                 W.ModelHash = hash_sha256(os.path.join(deepimagej_model_path, W.WeightsSource))
 
-        # record which files should be attached for the Bioimage Model Zoo packager
+        # record which files should be attached for the BioImage Model Zoo packager
         attachments_files = []
 
         if hasattr(self, 'test_info'):
             # extract the information about the testing image
             io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tif'),
                       self.test_info.InputImage)
-            # store numpy arrays for future bioimage CI
+            # store numpy arrays for future bioimage.io CI
             np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
                     self.test_info.InputImage)
 
@@ -715,7 +715,7 @@ class BioimageConfig(DeepImageJConfig):
             if self.test_info.Output_type == 'image':
                 io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tif'),
                           self.test_info.OutputImage)
-                # store numpy arrays for future bioimage CI
+                # store numpy arrays for future bioimage.io CI
                 np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
                         self.test_info.OutputImage)
 
@@ -727,7 +727,7 @@ class BioimageConfig(DeepImageJConfig):
                 np.savetxt(os.path.join(deepimagej_model_path, 'resultTable.csv'),
                            self.test_info.OutputImage, delimiter=",",
                            header=columns, comments="")
-                # store numpy arrays for future bioimage CI
+                # store numpy arrays for future bioimage.io CI
                 np.save(os.path.join(deepimagej_model_path, 'resultTable.npy'),
                         self.test_info.OutputImage)
 
@@ -762,7 +762,7 @@ class BioimageConfig(DeepImageJConfig):
         # Update attachments
         self.Attachments = {'files':  FSlist(attachments_files)}
 
-        # write the DeepImageJ configuration model.yaml file according to Bioimage.IO
+        # write the DeepImageJ configuration model.yaml file according to BioImage Model Zoo
         write_config(self, deepimagej_model_path)
 
 

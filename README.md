@@ -7,7 +7,7 @@ Python code to export trained models and read them in Fiji & ImageJ using DeepIm
   - Creates a configuration class in python with all the information about the trained model needed for its correct use in Fiji & ImageJ.
   - Includes the metadata of an example image.
   - Includes all expected results and needed pre / post-processing routines.
-  - See [DeepImageJ webpage](https://deepimagej.github.io/deepimagej/) for more information. 
+  - See [deepImageJ webpage](https://deepimagej.github.io/deepimagej/) for more information. 
 
 ### Requirements & Installation
 
@@ -48,8 +48,8 @@ Copyright © 2019. Universidad Carlos III, Madrid; Spain and EPFL, Lausanne, Swi
 
 Let `model` be a Keras or TensorFlow trained model. Initialize the configuration class with the trained model `model`
 ````python
-from pydeepimagej.yaml import BioimageConfig
-dij_config = BioimageConfig(model)
+from pydeepimagej.yaml import BioImageModelZooConfig
+dij_config = BioImageModelZooConfig(model)
 ````
 Update model information
 ````python
