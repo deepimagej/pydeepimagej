@@ -4,12 +4,6 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
 
-try:
-    install_reqs = _parse_requirements("requirements.txt")
-except Exception:
-    logging.warning('Fail load requirements file, so using default ones.')
-    install_reqs = []
-
 setup(
     name='pydeepimagej',
     packages=find_packages(),
@@ -24,7 +18,13 @@ setup(
     download_url='https://github.com/deepimagej/pydeepimagej/archive/v1.0.0.tar.gz',
     keywords=['Fiji', 'ImageJ', 'deepImageJ', 'Deep Learning', 'Image processing', 'bioimage.io', 'BioImage Model Zoo'],
     python_requires='>=3.0',
-    install_requires=install_reqs,
+    install_requires=[
+        'numpy',
+        'scikit-image==0.17.2',
+        'ruamel.yaml',
+        'zipfile36',
+        'datetime'
+      ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
