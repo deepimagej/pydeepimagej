@@ -578,7 +578,9 @@ class BioImageModelZooConfig(DeepImageJConfig):
             if self.OutputOrganization0 != 'list' and self.OutputOrganization0 != 'null':
                 self.Halo = _pixel_half_receptive_field(self, tf_model)
         except:
-            print(colors.GREEN + 'The halo of the model is undetermined.' + colors.WHITE)
+            print(colors.GREEN + 'The halo of the model is undetermined and will be set as zero' + colors.WHITE)
+            # batch and channel axis are not considered
+            self.Halo = np.zeros(len(tf_model.input_shape) - 2, dtype=np.int)
 
         self.ModelInput = tf_model.input_shape
         self.ModelOutput = tf_model.output_shape
