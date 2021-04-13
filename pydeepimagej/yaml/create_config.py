@@ -404,7 +404,7 @@ def write_config(Config, path2save):
     - TestInfo:   Metadata of the image provided as an example
     - path2save:  path to the template of the configuration file.
     It can be downloaded from:
-      https://raw.githubusercontent.com/deepimagej/python4deepimagej/blob/master/xml/config_template.xml
+      https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/pydeepimagej/yaml/bioimage.io.config_template.yaml
     The function updates the fields in the template provided with the
     information about the model and the example image.
     """
