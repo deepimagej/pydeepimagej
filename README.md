@@ -38,7 +38,18 @@ DOI: [https://doi.org/10.1101/799270](https://doi.org/10.1101/799270)
 
 Corresponding authors: mamunozb@ing.uc3m.es, daniel.sage@epfl.ch
 Copyright © 2019. Universidad Carlos III, Madrid; Spain and EPFL, Lausanne, Switzerland.
-
+#### How to cite
+```bibtex
+@article{gomez2019deepimagej,
+  title={DeepImageJ: A user-friendly plugin to run deep learning models in ImageJ},
+  author={G{\'o}mez-de-Mariscal, Estibaliz and Garc{\'\i}a-L{\'o}pez-de-Haro, Carlos and Donati, Laur{\`e}ne and Unser, Michael and Mu{\~n}oz-Barrutia, Arrate and Sage, Daniel},
+  journal={bioRxiv},
+  year={2019},
+  publisher={Cold Spring Harbor Laboratory},
+  URL = {https://www.biorxiv.org/content/early/2019/10/16/799270},
+  doi = {10.1101/799270}
+}
+```
 #### License
 
 [BSD 2-Clause License](https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/LICENSE)
@@ -72,8 +83,8 @@ dij_config.Framework = 'TensorFlow'
 # Parent model in the BioImage Model Zoo whose trained weights were used as pretrained weights.
 dij_config.Parent = "https://bioimage.io/#/?id=deepimagej%2FUNet2DPancreaticSegmentation"
 ````
-### Pre & post-processing specification.
-#### Specify the pre&post-processing steps following the BioImage Model Zoo specifications.
+### 1. Pre & post-processing specification.
+#### 1.1. Specify the pre&post-processing steps following the BioImage Model Zoo specifications.
 If the pre-processing or the post-processing can be defined using the implementations defined at
 , then it is also possible to specify them with some code:
 ```python
@@ -126,7 +137,7 @@ dij_config.BioImage_Postprocessing:
  {'scale_range': {'kwargs': {'axes': 'xy', 'gain': 255, 'offset': 0}}},
  {'binarize': {'kwargs': {'threshold': 0.5}}}]
 ```
-#### Prepare an ImageJ pre/post-processing macro.
+#### 1.2. Prepare an ImageJ pre/post-processing macro.
 You may need to preprocess the input image before the inference. Some ImageJ macro routines can be downloaded from [here](https://github.com/deepimagej/imagej-macros/) and included in the model specifications. Note that ImageJ macros are text files so it is easy to modify them inside a Python script ([see an example](https://github.com/deepimagej/pydeepimagej/blob/master/README.md#additional-commands)). To add any ImageJ macro code we need to run `add_preprocessing(local_path_to_the_macro_file, 'name_to_store_the_macro_in_the_bundled_model')`:
 ````python
 path_preprocessing = "PercentileNormalization.ijm"
@@ -148,7 +159,7 @@ path_second_postprocessing = './folder/another_macro.ijm'
 dij_config.add_postprocessing(path_second_postprocessing, 'postprocessing_2')
 ````
 
-### Add information about the example image.
+### 2. Add information about the example image.
 Let `test_img` be an example image to test the model inference and `test_prediction` be the resulting image after the post-processing. It is possible to export the trained model with these two, so an end user can see an example. 
 `PixelSize` should be a list of values according to `test_img` dimensions and given in microns (µm). 
 ````python
@@ -156,14 +167,14 @@ PixelSize = [0.64,0.64,1] # Pixel size of a 3D volume with axis yxz
 dij_config.add_test_info(test_img, test_prediction, PixelSize)
 ````
 
-#### Create some covers for the model card in the BioImage Model Zoo.
+#### 2.1. Create some covers for the model card in the BioImage Model Zoo.
 Let `test_img` and `test_mask` be the input and output example images, and `./input.png` and `./output.png` the names we want to use to store them within bundled model. `dij_config` stretches the intensity range of the given images to the [0, 255] range so the images can be exported as 8-bits images and visualized properly on the website.  
 ```python
 dij_config.create_covers([test_img, test_mask])
 dij_config.Covers =  ['./input.png', './output.png']
 ```
 
-### Store weights using specific formats.
+### 3. Store weights using specific formats.
 The weights of a trained model can be stored either as a TensorFlow SavedModel bundle (`saved_model.pb` + `variables/`) or as a Keras HDF5 model (`model.h5`). Let `model` be a trained model in TensorFlow. With pydeepimagej, the weights information can be included as follows:
 ````python
 
@@ -193,7 +204,7 @@ weights:
     - into this new format
 ````
 
-### EXPORT THE MODEL
+### 4. EXPORT THE MODEL
 ````python
 deepimagej_model_path = './my_trained_model_deepimagej'
 dij_config.export_model(deepimagej_model_path)
@@ -241,7 +252,18 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(10)])
 ```
+## Code references used in this package:
+This code uses similar functions to the ones in [StarDist](https://github.com/stardist/stardist) package for the calculation of a pixel's receptive field in a network. Citations:
+- Uwe Schmidt, Martin Weigert, Coleman Broaddus, and Gene Myers.
+  Cell Detection with Star-convex Polygons.
+  International Conference on Medical Image Computing and Computer-Assisted Intervention (MICCAI), Granada, Spain, September 2018.
+  DOI: [10.1007/978-3-030-00934-2_30](https://doi.org/10.1007/978-3-030-00934-2_30)
 
+- Martin Weigert, Uwe Schmidt, Robert Haase, Ko Sugawara, and Gene Myers.
+  Star-convex Polyhedra for 3D Object Detection and Segmentation in Microscopy.
+  The IEEE Winter Conference on Applications of Computer Vision (WACV), Snowmass Village, Colorado, March 2020 
+  DOI: [10.1109/WACV45572.2020.9093435](https://doi.org/10.1109/WACV45572.2020.9093435)
+  
 ## TODO list
 
  - Addapt pydeepimagej to PyTorch models so it can export trained models into TorchScript format.
