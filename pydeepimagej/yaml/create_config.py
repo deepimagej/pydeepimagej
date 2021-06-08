@@ -220,10 +220,15 @@ def _pixel_half_receptive_field(model_class, tf_model):
         ind = np.where(D[:min_size[0], :min_size[1]] == 1)
     else:
         ind = np.where(D[:min_size[0], :min_size[1], :min_size[2]] == 1)
-    halo = np.min(ind[1])
-    halo = min_size - halo + 1
-
-    halo = [np.max((0, h)) for h in halo]
+    try:
+      # if ind is not empty
+      halo = np.min(ind[1])
+      halo = min_size - halo + 1
+      halo = [np.max((0, h)) for h in halo]
+    except:
+      # if ind is empty then the halo cannot be calculated
+      halo = [0]*len(min_size)
+    return halo
 
     return halo
 
@@ -578,9 +583,9 @@ class BioImageModelZooConfig(DeepImageJConfig):
             if self.OutputOrganization0 != 'list' and self.OutputOrganization0 != 'null':
                 self.Halo = _pixel_half_receptive_field(self, tf_model)
         except:
-            print(colors.GREEN + 'The halo of the model is undetermined and will be set as zero' + colors.WHITE)
+            print(colors.GREEN + 'The halo of the model is undetermined and will be set as {}'.format(self.Halo) + colors.WHITE)
             # batch and channel axis are not considered
-            self.Halo = np.zeros(len(tf_model.input_shape) - 2, dtype=np.int)
+            self.Halo = [0]*(len(tf_model.input_shape) - 2)
 
         self.ModelInput = tf_model.input_shape
         self.ModelOutput = tf_model.output_shape
