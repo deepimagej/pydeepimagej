@@ -1,5 +1,8 @@
-format_version: 0.3.0
+format_version: 0.3.2
 name:
+    - name: DeepImageJ
+      affiliation: EPFL, UC3M
+      orcid: 0000-0000-1000-1000
 description:
 date:
 # we allow for multiple citations. Each citation contains TEXT, DOI and URL. One of DOI or URL needs to be given.

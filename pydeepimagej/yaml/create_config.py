@@ -425,7 +425,18 @@ def write_config(Config, path2save):
 
     YAML_dict['name'] = Config.Name
     YAML_dict['description'] = Config.Description
-    YAML_dict['authors'] = Config.Authors
+    
+    if Config.Authors is not None and Config.Authors != 'null':
+        if len(Config.Authors.Names) == len(Config.Authors.Affiliations):
+            YAML_dict['authors'] = [{'name': Config.Authors.Names[i],
+                                     'affiliation': Config.Authors.Affiliations[i]} for i in range(len(Config.Authors.Names))]
+        else:
+            YAML_dict['authors'] = [{'affiliation': None,
+                                     'name': Config.Authors.Names[i]} for i in range(len(Config.Authors.Names))]
+    else:
+        YAML_dict['authors'] = None
+
+
     if Config.References is not None and Config.References != 'null':
         if len(Config.References) == len(Config.DOI):
             YAML_dict['cite'] = [{'doi': Config.DOI[i],
@@ -550,10 +561,11 @@ class BioImageModelZooConfig(DeepImageJConfig):
         # New fields for the bioimage.io configuration file
         self.Timestamp = datetime.now()
         self.MinimumSize = MinimumSize
+        self.Authors = self.authors_dict()
         self.Description = None
         self.DOI = None
         self.Documentation = None
-        self.Format_version = '0.3.0'  # bioimage.io
+        self.Format_version = '0.3.2'  # bioimage.io
         self.License = 'BSD-3'
         self.Tags = ['deepimagej']
         self.Covers = None
@@ -602,6 +614,12 @@ class BioImageModelZooConfig(DeepImageJConfig):
         self.Postprocessing_files = None
         self.BioImage_Preprocessing = None
         self.BioImage_Postprocessing = None
+
+    class authors_dict:
+        def __init__(self):
+          self.Names = None
+          self.Affiliations = None
+          self.Orcid = None
 
     class TestImage:
         def __add__(self, input_im, output_im, output_type, pixel_size):

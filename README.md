@@ -8,7 +8,7 @@ Python code to export trained models into the [BioImage Model Zoo](https://bioim
   - Includes the metadata of an example image.
   - Includes all expected results and needed pre / post-processing routines.
   - Creates basic cover images for the model card in the BioImage Model Zoo.
-  - Creates de the version 0.3.0 of the [BioImage Model Zoo specification file](https://bioimage.io/docs/#/contribute_models/README?id=model-contribution-requirements): `model.yaml`   
+  - Creates de the version 0.3.2 of the [BioImage Model Zoo specification file](https://bioimage.io/docs/#/contribute_models/README?id=model-contribution-requirements): `model.yaml`   
   - See [deepImageJ webpage](https://deepimagej.github.io/deepimagej/) for more information about how to use the model in Fiji & ImageJ. 
 
 ### Requirements & Installation
@@ -71,9 +71,10 @@ Update model information
 ````python
 dij_config.Name = 'My trained model v0.1'
 dij_config.Description = 'Brief description of the task to perform by the trained model'
-dij_config.Authors = ['First author', 'Secon Author', 'Third Author who create the configuration specifications']
-dij_config.References = ['Gómez-de-Mariscal, E., García-López-de-Haro, C. et al., bioRxiv 2019']
-dij_config.DOI = ['https://doi.org/10.1101/799270']
+dij_config.Authors.Names = ['First author', 'Second Author', 'Third Author who create the configuration specifications']
+dij_config.Authors.Affiliations = ['First author affiliation', 'Second author affiliation', 'Third author affiliation']
+dij_config.References = ['Gómez-de-Mariscal, E., García-López-de-Haro, C. et al., bioRxiv 2019', 'Second citation']
+dij_config.DOI = ['https://doi.org/10.1101/799270', 'second citation doi']
 dij_config.GitHub = 'https://github.com/deepimagej/pydeepimagej'
 dij_config.License = 'BSD-3'
 dij_config.Documentation = 'https://useful_documentation.pdf'
