@@ -467,15 +467,15 @@ def write_config(Config, path2save):
     YAML_dict['parent'] = 'null' if Config.Parent is None else Config.Parent
 
     if hasattr(Config, 'test_info'):
-        YAML_dict['sample_inputs'] = ['./exampleImage.npy']
-        YAML_dict['test_inputs'] = ['./exampleImage.tif']
+        YAML_dict['test_inputs'] = ['./exampleImage.npy']
+        YAML_dict['sample_inputs'] = ['./exampleImage.tif']
 
         if Config.test_info.Output_type == 'image':
-            YAML_dict['sample_outputs'] = ['.resultImage.npy']
-            YAML_dict['test_outputs'] = ['.resultImage.tif']
+            YAML_dict['test_outputs'] = ['.resultImage.npy']
+            YAML_dict['sample_outputs'] = ['.resultImage.tif']
         else:
-            YAML_dict['sample_outputs'] = ['.resultTable.npy']
-            YAML_dict['test_outputs'] = ['.resultTable.csv']
+            YAML_dict['test_outputs'] = ['.resultTable.npy']
+            YAML_dict['sample_outputs'] = ['.resultTable.csv']
 
     YAML_dict = weights_definition(Config, YAML_dict)
     YAML_dict = input_definition(Config, YAML_dict)
