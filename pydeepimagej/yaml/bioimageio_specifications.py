@@ -70,50 +70,46 @@ def scale_range(mode='per_sample',axes='xyzc', min_percentile=0, max_percentile=
     """
     Normalize the tensor with percentile normalization
     """
-    dict_scale_range = {'scale_range': {
-        'kwargs': {
-            'mode': mode,
-            'axes': axes,
-            'min_percentile': min_percentile,
-            'max_percentile': max_percentile
-
-            }}
-        }
+    dict_scale_range = {'name': 'scale_range',
+                        'kwargs': {
+                            'mode': mode,
+                            'axes': axes,
+                            'min_percentile': min_percentile,
+                            'max_percentile': max_percentile
+                            }
+                        }
     return dict_scale_range
 
 def clip(threshold=0.5):
     """
     clip the tensor
     """
-    dict_binarize = {'scale_range': {
-        'kwargs': {
-            'threshold': threshold
-        }}
-    }
+    dict_binarize = {'name': 'scale_range',
+                     'kwargs': {'threshold': threshold}
+                     }
     return dict_binarize
 
 def binarize(threshold=0.5):
     """
-    binarize the tensor with a fixed threshold, values above the threshold will be set to one, values below the threshold to zero
+    binarize the tensor with a fixed threshold, values above the threshold will
+    be set to one, values below the threshold to zero
     """
-    dict_binarize = {'binarize': {
-        'kwargs': {
-            'threshold': threshold
-        }}
-    }
+    dict_binarize = {'name': 'binarize',
+                     'kwargs': {'threshold': threshold}
+                    }
     return dict_binarize
 
 def scale_linear(gain=1, offset=0, axes='yx'):
     """
     scale the tensor with a fixed multiplicative and additive factor
     """
-    dict_scale_linear = {'scale_range': {
-        'kwargs': {
-            'gain': gain,
-            'offset': offset,
-            'axes': axes
-        }}
-    }
+    dict_scale_linear = {'name': 'scale_range',
+                        'kwargs': {
+                            'gain': gain,
+                            'offset': offset,
+                            'axes': axes
+                            }
+                        }
     return dict_scale_linear
 
 def sigmoid():
@@ -127,15 +123,15 @@ def zero_mean_unit_variance(mode='per_sample', axes='xyzc', mean=0, std=1, eps=1
     """
     normalize the tensor to have zero mean and unit variance
     """
-    dict_zero_mean_unit_variance = {'zero_mean_unit_variance': {
-        'kwargs': {
-            'mode': mode,
-            'axes': axes,
-            'mean': mean,
-            'std': std,
-            'eps': eps
-        }}
-    }
+    dict_zero_mean_unit_variance = {'name': 'zero_mean_unit_variance', 
+                                    'kwargs': {
+                                        'mode': mode,
+                                        'axes': axes,
+                                        'mean': mean,
+                                        'std': std,
+                                        'eps': eps
+                                        }
+                                }
     return dict_zero_mean_unit_variance
 
 def get_specification(process_name, **kwargs):

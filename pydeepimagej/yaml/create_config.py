@@ -458,7 +458,7 @@ def write_config(Config, path2save):
     YAML_dict['format_version'] = Config.Format_version
     YAML_dict['license'] = 'null' if Config.License is None else Config.License
     YAML_dict['framework'] = 'null' if Config.Framework is None else Config.Framework
-    YAML_dict['language'] = 'Java'
+    YAML_dict['language'] = 'java'
     YAML_dict['source'] = 'null' if Config.Source is None else Config.Source
     YAML_dict['tags'] = Config.Tags
     YAML_dict['git_repo'] = 'null' if Config.GitHub is None else Config.GitHub
@@ -573,7 +573,8 @@ class BioImageModelZooConfig(DeepImageJConfig):
         self.Framework = 'TensorFlow'
         self.GitHub = None
         self.Source = None
-        self.PackagedBy = ['pydeepimagej']
+        self.PackagedBy = [{'name': 'pydeepimagej',
+                          'affiliation': 'PIP python package'}]
         self.Attachments = None
         self.Parent = None
         # self.WeightsTorchScript = 'pytorch_script.pt'
