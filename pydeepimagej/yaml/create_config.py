@@ -786,6 +786,8 @@ class BioImageModelZooConfig(DeepImageJConfig):
 
 
         # Update attachments
+        if self.Attachments is not None:
+            attachments_files.extend(self.Attachments)
         self.Attachments = {'files':  FSlist(attachments_files)}
 
         # write the DeepImageJ configuration model.yaml file according to BioImage Model Zoo
