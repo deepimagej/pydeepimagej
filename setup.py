@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 setup(
     name='pydeepimagej',
     packages=find_packages(include=['pydeepimagej', 'pydeepimagej.*']),
-    version='2.2.3',
+    version='2.2.4',
     license='BSD 2-Clause License',
     description='Python package to export TensorFlow models as DeepImageJ bundled models',
     long_description=long_description,
