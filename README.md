@@ -31,8 +31,9 @@ $ pip install .
 
 ### Reference: 
 E. Gómez-de-Mariscal, C. García-López-de-Haro, L. Donati, M. Unser, A. Muñoz-Barrutia, D. Sage. 
-*DeepImageJ: A user-friendly plugin to run deep learning models in ImageJ*, bioRxiv 2019
-DOI: [https://doi.org/10.1101/799270](https://doi.org/10.1101/799270)
+*DeepImageJ: A user-friendly plugin to run deep learning models in ImageJ*, Nat Methods 18, 1192–1195 (2021).
+DOI: [https://doi.org/10.1038/s41592-021-01262-9](https://doi.org/10.1038/s41592-021-01262-9)
+
 - Bioengineering and Aerospace Engineering Department, Universidad Carlos III de Madrid, Spain
 - Biomedical Imaging Group, Ecole polytechnique federale de Lausanne (EPFL), Switzerland
 
