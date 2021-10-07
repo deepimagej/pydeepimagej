@@ -41,14 +41,16 @@ Corresponding authors: mamunozb@ing.uc3m.es, daniel.sage@epfl.ch
 Copyright © 2019. Universidad Carlos III, Madrid; Spain and EPFL, Lausanne, Switzerland.
 #### How to cite
 ```bibtex
-@article{gomez2019deepimagej,
-  title={DeepImageJ: A user-friendly plugin to run deep learning models in ImageJ},
-  author={G{\'o}mez-de-Mariscal, Estibaliz and Garc{\'\i}a-L{\'o}pez-de-Haro, Carlos and Donati, Laur{\`e}ne and Unser, Michael and Mu{\~n}oz-Barrutia, Arrate and Sage, Daniel},
-  journal={bioRxiv},
-  year={2019},
-  publisher={Cold Spring Harbor Laboratory},
-  URL = {https://www.biorxiv.org/content/early/2019/10/16/799270},
-  doi = {10.1101/799270}
+@article{Gómez-de-Mariscal2021,
+  title={DeepImageJ: A user-friendly environment to run deep learning models in ImageJ},
+  author={G{\'o}mez-de-Mariscal, Estibaliz and Garc{\'i}a-L{\'o}pez-de-Haro, Carlos and Ouyang, Wei and Donati, Laur{\`e}ne and     Lundberg, Emma and Unser, Michael and Mu{\~{n}}oz-Barrutia, Arrate and Sage, Daniel},
+  journal={Nature Methods},
+  year={2021},
+  volume={18},
+  number={10},
+  pages={1192-1195},
+  URL = {https://doi.org/10.1038/s41592-021-01262-9},
+  doi = {10.1038/s41592-021-01262-9}
 }
 ```
 #### License
