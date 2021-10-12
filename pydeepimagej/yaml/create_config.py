@@ -666,6 +666,7 @@ class BioImageModelZooConfig(DeepImageJConfig):
         """
         self.CoverImages = []
         for im in im_list:
+            im = np.squeeze(im)
             while len(im.shape) > 2:
                 im = im[0]
             im = np.interp(im, (im.min(), im.max()), (0, 255))
@@ -751,19 +752,19 @@ class BioImageModelZooConfig(DeepImageJConfig):
         if hasattr(self, 'test_info'):
             # extract the information about the testing image
             io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tif'),
-                      self.test_info.InputImage)
+                      np.squeeze(self.test_info.InputImage))
             # store numpy arrays for future bioimage.io CI
             np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
-                    self.test_info.InputImage)
+                    self.test_info.InputImage.astype(np.float32))
 
             attachments_files.append("./exampleImage.tif")
 
             if self.test_info.Output_type == 'image':
                 io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tif'),
-                          self.test_info.OutputImage)
+                          np.squeeze(self.test_info.OutputImage))
                 # store numpy arrays for future bioimage.io CI
                 np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
-                        self.test_info.OutputImage)
+                        self.test_info.OutputImage.astype(np.float32))
 
                 attachments_files.append("./resultImage.tif")
 
@@ -775,7 +776,7 @@ class BioImageModelZooConfig(DeepImageJConfig):
                            header=columns, comments="")
                 # store numpy arrays for future bioimage.io CI
                 np.save(os.path.join(deepimagej_model_path, 'resultTable.npy'),
-                        self.test_info.OutputImage)
+                        self.test_info.OutputImage.astype(np.float32))
 
                 attachments_files.append("./resultTable.csv")
 
