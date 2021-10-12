@@ -1,22 +1,18 @@
 format_version: 0.3.2
+type: model
 name:
     - name: DeepImageJ
       affiliation: EPFL, UC3M
       orcid: 0000-0000-1000-1000
 description:
-date:
-# we allow for multiple citations. Each citation contains TEXT, DOI and URL. One of DOI or URL needs to be given.
 cite:
     - text: Gómez de Mariscal et al. bioRxiv 2019
       doi: https://doi.org/10.1101/799270
 authors:
 documentation:
-source:
-parent:
 license:
 language: Java
 framework:
-git_repo:
 covers:
 tags:
   - deepimagej
@@ -24,7 +20,6 @@ test_inputs:
 test_outputs:
 sample_inputs:
 sample_outputs:
-packaged_by:
 attachments:
 weights:
   tensorflow_saved_model_bundle:

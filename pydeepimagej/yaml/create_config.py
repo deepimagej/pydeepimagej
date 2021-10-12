@@ -332,6 +332,9 @@ def weights_definition(Config, YAML_dict):
         if hasattr(W, 'Authors'):
             WEIGHTS.update({'authors': W.Authors})
 
+        if hasattr(W, 'tf_version'):
+            WEIGHTS.update({'tensorflow_version': W.tf_version})
+
         if W.Framework == 'TensorFlow':
             YAML_dict['weights'].update({'tensorflow_saved_model_bundle': WEIGHTS})
 
@@ -349,7 +352,7 @@ def weights_definition(Config, YAML_dict):
 
 def input_definition(Config, YAML_dict):
     # TODO: Consider multiple outputs and inputs
-    input_data_range = "[-inf, inf]"
+    input_data_range = ["-inf", "inf"]
     input_dict = {'name': 'input',
                   'axes': Config.InputOrganization0,
                   'data_type': 'float32',
@@ -376,7 +379,7 @@ def input_definition(Config, YAML_dict):
 
 def output_definition(Config, YAML_dict):
     # TODO: Consider multiple outputs and inputs
-    output_data_range = "[-inf, inf]"
+    output_data_range = ["-inf", "inf"]
     output_dict = {'name': 'output',
                    'axes': Config.OutputOrganization0,
                    'data_range': output_data_range,
@@ -413,16 +416,22 @@ def write_config(Config, path2save):
     The function updates the fields in the template provided with the
     information about the model and the example image.
     """
-    urllib.request.urlretrieve(
-        "https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/pydeepimagej/yaml/bioimage.io.config_template.yaml",
-        "bioimage.io.config_template.yaml")
+
+    #urllib.request.urlretrieve(
+    #    "https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/pydeepimagej/yaml/bioimage.io.config_template.yaml",
+    #    "bioimage.io.config_template.yaml")
+    import os
+
+    yaml_template_location = os.path.dirname(os.path.realpath(__file__))
+    my_yaml = os.path.join(yaml_template_location, 'bioimage.io.config_template.yaml')
+
     try:
         yaml = YAML()
-        with open('bioimage.io.config_template.yaml') as f:
+        with open(my_yaml) as f:
             YAML_dict = yaml.load(f)
     except:
-        print("bioimage.io.config_template.yaml not found.")
-
+        print(colors.RED + "bioimage.io.config_template.yaml not found." + colors.WHITE)
+        
     YAML_dict['name'] = Config.Name
     YAML_dict['description'] = Config.Description
     
@@ -459,12 +468,22 @@ def write_config(Config, path2save):
     YAML_dict['license'] = 'null' if Config.License is None else Config.License
     YAML_dict['framework'] = 'null' if Config.Framework is None else Config.Framework
     YAML_dict['language'] = 'java'
-    YAML_dict['source'] = 'null' if Config.Source is None else Config.Source
     YAML_dict['tags'] = Config.Tags
-    YAML_dict['git_repo'] = 'null' if Config.GitHub is None else Config.GitHub
-    YAML_dict['packaged_by'] = 'null' if Config.PackagedBy is None else Config.PackagedBy
-    YAML_dict['attachments'] = 'null' if Config.Attachments is None else Config.Attachments
-    YAML_dict['parent'] = 'null' if Config.Parent is None else Config.Parent
+
+    if Config.Source is not None:
+        YAML_dict['source'] = Config.Source
+    
+    if Config.GitHub is not None:
+        YAML_dict['git_repo'] = Config.GitHub
+    
+    if Config.PackagedBy is not None:
+        YAML_dict['packaged_by'] = Config.PackagedBy
+    
+    if Config.Attachments is not None:
+        YAML_dict['attachments'] = Config.Attachments
+    
+    if Config.Parent is not None:
+        YAML_dict['parent'] = Config.Parent
 
     if hasattr(Config, 'test_info'):
         YAML_dict['test_inputs'] = ['./exampleImage.npy']
@@ -683,19 +702,20 @@ class BioImageModelZooConfig(DeepImageJConfig):
           print("add_bioimage_spec only accepts 'pre-processing' or 'post_processing' input process name.")
 
     class WeightsFormat:
-        def __init__(self, model, format, parent, authors):
+        def __init__(self, model, format, tf_version, parent, authors):
             if parent is not None:
                 self.FormatParent = parent
             if authors is not None:
                 self.Authors = authors
             self.Framework = format
+            self.tf_version = tf_version
             self.Model = model
 
-    def add_weights_formats(self, model, format, parent=None, authors=None):
+    def add_weights_formats(self, model, format, tf_version='1.15', parent=None, authors=None):
         if not hasattr(self, 'Weights'):
             self.Weights = []
 
-        self.Weights.append(self.WeightsFormat(model, format, parent, authors))
+        self.Weights.append(self.WeightsFormat(model, format, tf_version, parent, authors))
 
     def export_model(self, deepimagej_model_path, **kwargs):
         """
