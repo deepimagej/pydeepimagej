@@ -8,7 +8,7 @@ setup(
     name='pydeepimagej',
     packages=find_packages(include=['pydeepimagej', 'pydeepimagej.*']),
     package_data={'rdf_template': ['yaml/bioimage.io.config_template.yaml']},
-    version='2.3',
+    version='2.3.1',
     license='BSD 2-Clause License',
     description='Python package to export TensorFlow models as DeepImageJ bundled models',
     long_description=long_description,
