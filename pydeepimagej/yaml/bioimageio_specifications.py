@@ -90,7 +90,7 @@ def scale_linear(gain=1, offset=0, axes='yx'):
     """
     scale the tensor with a fixed multiplicative and additive factor
     """
-    dict_scale_linear = {'name': 'scale_range',
+    dict_scale_linear = {'name': 'scale_linear',
                         'kwargs': {
                             'gain': gain,
                             'offset': offset,
