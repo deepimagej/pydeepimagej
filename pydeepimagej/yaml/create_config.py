@@ -416,18 +416,13 @@ def write_config(Config, path2save):
     The function updates the fields in the template provided with the
     information about the model and the example image.
     """
-
-    #urllib.request.urlretrieve(
-    #    "https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/pydeepimagej/yaml/bioimage.io.config_template.yaml",
-    #    "bioimage.io.config_template.yaml")
-    import os
-
-    yaml_template_location = os.path.dirname(os.path.realpath(__file__))
-    my_yaml = os.path.join(yaml_template_location, 'bioimage.io.config_template.yaml')
-
+    yaml_path = os.path.join(path2save, "model.yaml")
+    urllib.request.urlretrieve(
+        "https://raw.githubusercontent.com/deepimagej/pydeepimagej/master/pydeepimagej/yaml/bioimage.io.config_template.yaml",
+        yaml_path)
     try:
         yaml = YAML()
-        with open(my_yaml) as f:
+        with open(yaml_path) as f:
             YAML_dict = yaml.load(f)
     except:
         print(colors.RED + "bioimage.io.config_template.yaml not found." + colors.WHITE)
@@ -490,11 +485,11 @@ def write_config(Config, path2save):
         YAML_dict['sample_inputs'] = ['./exampleImage.tif']
 
         if Config.test_info.Output_type == 'image':
-            YAML_dict['test_outputs'] = ['.resultImage.npy']
-            YAML_dict['sample_outputs'] = ['.resultImage.tif']
+            YAML_dict['test_outputs'] = ['./resultImage.npy']
+            YAML_dict['sample_outputs'] = ['./resultImage.tif']
         else:
-            YAML_dict['test_outputs'] = ['.resultTable.npy']
-            YAML_dict['sample_outputs'] = ['.resultTable.csv']
+            YAML_dict['test_outputs'] = ['./resultTable.npy']
+            YAML_dict['sample_outputs'] = ['./resultTable.csv']
 
     YAML_dict = weights_definition(Config, YAML_dict)
     YAML_dict = input_definition(Config, YAML_dict)
@@ -750,22 +745,32 @@ class BioImageModelZooConfig(DeepImageJConfig):
         attachments_files = []
 
         if hasattr(self, 'test_info'):
-            # extract the information about the testing image
-            io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tif'),
-                      np.squeeze(self.test_info.InputImage))
-            # store numpy arrays for future bioimage.io CI
+            
+            # store numpy arrays for bioimage.io CI
             np.save(os.path.join(deepimagej_model_path, 'exampleImage.npy'),
                     self.test_info.InputImage.astype(np.float32))
-
+            # store example image for imagej
+            im = np.squeeze(self.test_info.InputImage)
+            im_dim = im.shape
+            if len(im_dim) > 2:
+              if im_dim[-1] < im_dim[0]:
+                im = np.moveaxis(im, -1, 0)
+            io.imsave(os.path.join(deepimagej_model_path, 'exampleImage.tif'),
+                      im)
             attachments_files.append("./exampleImage.tif")
 
             if self.test_info.Output_type == 'image':
-                io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tif'),
-                          np.squeeze(self.test_info.OutputImage))
-                # store numpy arrays for future bioimage.io CI
+                # store numpy arrays for bioimage.io CI
                 np.save(os.path.join(deepimagej_model_path, 'resultImage.npy'),
-                        self.test_info.OutputImage.astype(np.float32))
-
+                        self.test_info.OutputImage.astype(np.float32))                
+                # store result image for imagej
+                im = np.squeeze(self.test_info.OutputImage)
+                im_dim = im.shape
+                if len(im_dim) > 2:
+                  if im_dim[-1] < im_dim[0]:
+                    im = np.moveaxis(im, -1, 0)
+                io.imsave(os.path.join(deepimagej_model_path, 'resultImage.tif'),
+                          im)
                 attachments_files.append("./resultImage.tif")
 
             else:
@@ -774,7 +779,7 @@ class BioImageModelZooConfig(DeepImageJConfig):
                 np.savetxt(os.path.join(deepimagej_model_path, 'resultTable.csv'),
                            self.test_info.OutputImage, delimiter=",",
                            header=columns, comments="")
-                # store numpy arrays for future bioimage.io CI
+                # store numpy arrays for bioimage.io CI
                 np.save(os.path.join(deepimagej_model_path, 'resultTable.npy'),
                         self.test_info.OutputImage.astype(np.float32))
 
