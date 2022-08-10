@@ -255,7 +255,7 @@ def save_tensorflow_pb(model_class, tf_model, deepimagej_model_path):
             from tensorflow.compat.v1.keras.backend import get_session
         else:
             from tensorflow import saved_model
-            from keras.backend import get_session
+            from tensorflow.keras.backend import get_session
 
         builder = saved_model.builder.SavedModelBuilder(deepimagej_model_path)
 
